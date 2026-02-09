@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.PrivDNSToggle" parent="android:Theme.Material.NoActionBar">
-        <!-- Required by drawable/ic_dns.xml (Quick Settings tile icon) -->
-        <item name="colorControlNormal">#FFFFFF</item>
-    </style>
+    <style name="Theme.PrivDNSToggle" parent="android:Theme.Material.NoActionBar" />
 </resources>

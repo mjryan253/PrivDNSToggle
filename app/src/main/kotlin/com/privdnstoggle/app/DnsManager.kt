@@ -62,16 +62,18 @@ object DnsManager {
                 return "Do not include paths or trailing slashes. Enter the hostname only."
             }
 
-            // Reject port numbers
+            // Check IPv4 and IPv6 before port check (IPv6 contains colons, e.g. 2001:4860:4860::8888)
+            if (IPV4_REGEX.matches(trimmed)) return null
+            val ipv6Part = trimmed.removeSurrounding("[", "]")
+            if (IPV6_REGEX.matches(ipv6Part)) return null
+
+            // Reject port numbers (hostname:port only; don't confuse with IPv6)
             if (trimmed.matches(Regex(".*:\\d+$"))) {
                 return "Do not include a port number. Enter the hostname only."
             }
 
-            // Check against valid patterns
+            // Check hostname pattern
             if (HOSTNAME_REGEX.matches(trimmed)) return null
-            if (IPV4_REGEX.matches(trimmed)) return null
-            val ipv6Part = trimmed.removeSurrounding("[", "]")
-            if (IPV6_REGEX.matches(ipv6Part)) return null
 
             "Invalid hostname or IP address format"
         } catch (_: Throwable) {
@@ -90,16 +92,16 @@ object DnsManager {
                 withTimeout(CONNECTION_TIMEOUT_MS) {
                     val trimmedHost = hostname.trim()
                     if (trimmedHost.isEmpty()) {
-                        return@withContext Result.failure(Exception("Hostname is empty"))
-                    }
-                    val factory = SSLSocketFactory.getDefault()
-                    val socket: Socket = factory.createSocket(trimmedHost, DOT_PORT)
-                    try {
-                        socket.soTimeout = CONNECTION_TIMEOUT_MS.toInt()
-                        // Connection already established by createSocket(host, port)
-                        Result.success(Unit)
-                    } finally {
-                        try { socket.close() } catch (_: Exception) {}
+                        Result.failure(Exception("Hostname is empty"))
+                    } else {
+                        val factory = SSLSocketFactory.getDefault()
+                        val socket: Socket = factory.createSocket(trimmedHost, DOT_PORT)
+                        try {
+                            socket.soTimeout = CONNECTION_TIMEOUT_MS.toInt()
+                            Result.success(Unit)
+                        } finally {
+                            try { socket.close() } catch (_: Exception) {}
+                        }
                     }
                 }
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
