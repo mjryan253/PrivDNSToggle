@@ -3,7 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
 }
 
-// Each subproject builds into builds/<moduleName>/ (e.g. builds/app/)
+// Build output under root/builds/ with a subdirectory per module (e.g. builds/app/)
+layout.buildDirectory.set(layout.projectDirectory.dir("builds"))
 subprojects {
     layout.buildDirectory.set(rootProject.layout.buildDirectory.dir(project.name))
 }
