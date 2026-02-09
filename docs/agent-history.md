@@ -86,3 +86,9 @@ Each new entry should follow this pattern:
 - **What:** app/build.gradle.kts: added testOptions { unitTests { isReturnDefaultValues = true } }. DnsManagerTest.kt: added @RunWith(JUnit4::class) and imports. docs/testing.md: added "If Android Studio doesn't show Run" troubleshooting (Sync Gradle, Mark as Test Sources Root, Rebuild, Invalidate Caches, Run via Gradle).
 - **Why:** User reported Android Studio had no ability to run DnsManagerTest as a test and couldn't get details on lint/validity.
 - **Notes:** @RunWith(JUnit4::class) helps IDE recognize JUnit 4 test; troubleshooting covers common causes.
+
+### 2026-02-09 — Replace app icons with filter-icon.png
+
+- **What:** Created `icon-gen/` directory with `convert_icon.py` (Pillow-based) and `requirements.txt`. Script takes `filter-icon.png` from repo root and produces all Android icon assets into `icon-gen/output/res/`: legacy launcher PNGs (5 densities), round launcher PNGs, adaptive-icon foreground PNGs (108dp canvas with 72dp safe zone), monochrome QS tile PNGs (white-on-transparent silhouette), and adaptive-icon XML files. Updated `colors.xml` to change `ic_launcher_background` from blue (#1B6EF3) to dark gray (#3D3D3D). Added `android:roundIcon="@mipmap/ic_launcher_round"` to `AndroidManifest.xml`. Deleted old `drawable/ic_dns.xml` vector (shield/lock), to be replaced by density-specific `ic_dns.png` files from the script output.
+- **Why:** User wants `filter-icon.png` used everywhere the app needs an icon or image.
+- **Notes:** User must run `convert_icon.py` manually, then copy `icon-gen/output/res/*` into `app/src/main/res/`. The build will not succeed until those generated PNGs are in place (the old `ic_dns.xml` vector was deleted and `@drawable/ic_dns` / `@mipmap/ic_launcher_foreground` now expect the raster replacements).
