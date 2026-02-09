@@ -87,6 +87,12 @@ Each new entry should follow this pattern:
 - **Why:** User reported Android Studio had no ability to run DnsManagerTest as a test and couldn't get details on lint/validity.
 - **Notes:** @RunWith(JUnit4::class) helps IDE recognize JUnit 4 test; troubleshooting covers common causes.
 
+### 2026-02-09 — v0.2-beta release prep
+
+- **What:** Bumped `versionCode` to 2 and `versionName` to `"0.2-beta"` in `app/build.gradle.kts`. Replaced individual `.idea/*` exclusions in `.gitignore` with a blanket `.idea/` rule and removed tracked `.idea/` files from git. Created `CHANGELOG.md` with v0.2-beta release notes.
+- **Why:** Preparing the main branch for the v0.2-beta GitHub Release.
+- **Notes:** Tagged as `v0.2-beta` pre-release on GitHub with unsigned APK attached.
+
 ### 2026-02-09 — Replace app icons with filter-icon.png
 
 - **What:** Created `icon-gen/` directory with `convert_icon.py` (Pillow-based) and `requirements.txt`. Script takes `filter-icon.png` from repo root and produces all Android icon assets into `icon-gen/output/res/`: legacy launcher PNGs (5 densities), round launcher PNGs, adaptive-icon foreground PNGs (108dp canvas with 72dp safe zone), monochrome QS tile PNGs (white-on-transparent silhouette), and adaptive-icon XML files. Updated `colors.xml` to change `ic_launcher_background` from blue (#1B6EF3) to dark gray (#3D3D3D). Added `android:roundIcon="@mipmap/ic_launcher_round"` to `AndroidManifest.xml`. Deleted old `drawable/ic_dns.xml` vector (shield/lock), to be replaced by density-specific `ic_dns.png` files from the script output.

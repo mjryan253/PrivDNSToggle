@@ -11,8 +11,8 @@ android {
         applicationId = "com.privdnstoggle.app"
         minSdk = 28
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "0.2-beta"
     }
 
     buildTypes {
