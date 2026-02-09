@@ -7,8 +7,10 @@ A minimal Android app to toggle Private DNS on and off — from the Quick Settin
 ## Features
 
 - **Quick Settings Tile** — pull down notification shade, tap to toggle Private DNS on/off
-- **Simple UI** — enter your DNS hostname or IP, save, and apply in one tap
-- **Lightweight** — no background services, no internet permission, no analytics
+- **Large Toggle Switch** — prominent horizontal switch in the app for easy on/off control
+- **DNS Validation** — syntax validation and connection testing (10s timeout) before saving
+- **Dark Mode UI** — modern dark theme interface by default
+- **Lightweight** — no background services, no analytics
 
 ## Setup
 
@@ -43,7 +45,11 @@ That's it. This permission **persists across app updates** — you only need to 
 ## Usage
 
 - **Quick Settings Tile**: Tap to toggle between your saved DNS hostname and off
-- **App**: Open to change the DNS hostname/IP, view current status, or toggle with the switch
+- **App**: 
+  - Use the large toggle switch at the top to turn Private DNS on/off
+  - Enter your DNS provider hostname or IP address (e.g., `dns.nextdns.io`, `one.one.one.one`)
+  - Tap **Save** to validate syntax, test the connection (10s timeout), and apply the DNS setting
+  - View current status and active DNS hostname
 
 ## How It Works
 
@@ -60,3 +66,4 @@ When toggled **on**, the mode is set to `"hostname"` with your saved specifier. 
 
 - Android 9+ (API 28)
 - One-time ADB command for permission grant
+- Internet connection (for DNS connection testing during setup)

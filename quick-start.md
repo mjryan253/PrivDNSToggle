@@ -153,9 +153,14 @@ You should see the permission listed.
 ### 5.2 Configure DNS (First Time)
 
 1. Open the **PrivDNS Toggle** app from your app drawer
-2. Enter your desired DNS hostname (e.g., `dns.adguard.com`, `one.one.one.one`, `dns.cloudflare.com`)
-3. Tap **Save**
-4. The app will apply the DNS setting automatically
+2. You'll see a large toggle switch at the top (currently OFF)
+3. Enter your desired DNS hostname or IP address in the input field below (e.g., `dns.nextdns.io`, `one.one.one.one`, `dns.cloudflare.com`)
+4. Tap **Save** — the app will:
+   - Validate the hostname/IP syntax
+   - Test the connection to port 853 (DNS-over-TLS) with a 10-second timeout
+   - Save and apply the DNS setting if successful
+   - Show an error message if validation or connection fails
+5. Once saved, you can use the large toggle switch to turn Private DNS on/off
 
 ## Step 6: You're Ready!
 
@@ -168,9 +173,12 @@ You should see the permission listed.
 ### Using the App
 
 - Open **PrivDNS Toggle** to:
-  - Change your DNS hostname/IP
-  - View current Private DNS status
-  - Toggle Private DNS on/off with the switch
+  - **Toggle Private DNS**: Use the large horizontal switch at the top to turn Private DNS on/off
+  - **Change DNS Provider**: Enter a new hostname/IP in the input field and tap **Save**
+    - The app validates syntax (hostname, IPv4, or IPv6 format)
+    - Tests connectivity to the DNS provider (10-second timeout)
+    - Shows inline error messages if validation or connection fails
+  - **View Status**: See current Private DNS state and active hostname at the top
 
 ## Troubleshooting
 
@@ -204,6 +212,17 @@ You should see the permission listed.
 - Check that you're running Android 9+ (API 28+)
 - Try uninstalling and reinstalling the app, then grant permission again
 - Check app logs in Android Studio: **View > Tool Windows > Logcat**
+
+### DNS Connection Test Fails
+
+**Symptoms:** Save button shows "Connection failed" or timeout error
+
+**Solutions:**
+- Verify your internet connection is active
+- Check that the DNS hostname/IP is correct (no `https://` prefix, no port numbers)
+- Ensure the DNS provider supports DNS-over-TLS on port 853
+- Try a different DNS provider (e.g., `one.one.one.one`, `dns.cloudflare.com`)
+- Some networks may block port 853 — try on a different network or mobile data
 
 ### Gradle Sync Fails
 
