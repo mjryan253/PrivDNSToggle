@@ -42,38 +42,47 @@ Each new entry should follow this pattern:
 
 ### 2025-02-09 — Implement UI and validation plan
 
-- **What:**
-  - **Dark mode:** `themes.xml` parent set to `Theme.Material.NoActionBar`; `MainActivity.kt` `dynamicColorScheme()` switched to `dynamicDarkColorScheme()` / `darkColorScheme()`.
-  - **INTERNET permission:** Added to `AndroidManifest.xml` for connection test.
-  - **DnsManager.kt:** Added `validateHostnameSyntax()` (hostname/IP regex, no scheme/port/path) and `suspend fun testConnection(hostname)` (TLS connect to port 853, 10s timeout, `Result`-based, never throw).
-  - **MainActivity.kt:** Replaced main screen with large custom toggle (`LargeToggleSwitch`), DNS input field, Save button that runs syntax check then connection test with loading state and inline errors; kept collapsible setup instructions.
-- **Why:** To implement the approved plan (dark theme, large toggle, validation, connection test, tile unchanged).
-- **Notes:** Quick Settings tile required no code changes; it already used `DnsManager.toggle()` and saved hostname.
+- **What:** Dark mode (themes.xml, dynamicColorScheme in MainActivity); INTERNET permission; DnsManager.validateHostnameSyntax() and testConnection(); MainActivity redesign with large toggle, DNS input, Save with validation/connection test and inline errors. Tile unchanged.
+- **Why:** To implement the approved plan.
+- **Notes:** Quick Settings tile required no code changes.
 
 ### 2025-02-09 — Documentation updates for new features
 
-- **What:** Updated `README.md` and `quick-start.md` to describe: large toggle, DNS validation and connection test, dark mode, updated Save flow and troubleshooting (e.g. connection test failures).
+- **What:** Updated README.md and quick-start.md to describe large toggle, DNS validation and connection test, dark mode, updated Save flow and troubleshooting.
 - **Why:** Keep docs in sync with new behavior and UI.
 
 ### 2025-02-09 — Fix resource linking (ic_dns.xml)
 
-- **What:** First attempt: added `colorControlNormal` to `themes.xml` for the drawable that referenced `?attr/colorControlNormal`. Build still failed (style attribute not found in merged resources). Second fix: removed `android:tint="?attr/colorControlNormal"` from `app/src/main/res/drawable/ic_dns.xml` and reverted `themes.xml` to a single-style declaration with no extra items.
-- **Why:** Build failed with `attr/colorControlNormal not found` when linking resources; the platform theme does not declare that attribute, so the drawable was updated to not depend on it.
-- **Notes:** Tile icon still uses path fillColor; system may still tint it at runtime.
+- **What:** Removed `android:tint="?attr/colorControlNormal"` from `app/src/main/res/drawable/ic_dns.xml`; reverted themes.xml to single-style declaration. (First attempt of adding colorControlNormal to theme had failed.)
+- **Why:** Build failed with attr/colorControlNormal not found when linking resources; platform theme does not declare that attribute.
+- **Notes:** Tile icon still uses path fillColor; system may still tint at runtime.
 
 ### 2025-02-09 — Fix crash when saving custom DNS value
 
-- **What:**
-  - **DnsManager.kt:** `testConnection()`: Switched to `SSLSocketFactory.getDefault().createSocket(hostname, DOT_PORT)` instead of create-then-connect; added `Throwable` catch so the function never throws; trim hostname and handle empty; set socket soTimeout.
-  - **DnsManager.kt:** `validateHostnameSyntax()`: Wrapped body in try/catch returning generic error on any throw.
-  - **MainActivity.kt:** Save button handler: Wrapped post–connection-test state updates in `withContext(Dispatchers.Main.immediate)`; wrapped entire `scope.launch` body in try/catch and on exception set `isValidating = false` and a generic error message.
-- **Why:** App crashed when user entered a custom DNS and tapped Save; fixes ensure connection test and validation never throw and that UI state is only updated on the main thread, with any unexpected error surfaced as a message instead of a crash.
-- **Notes:** Defensive coding for emulator/device variance and to avoid main-thread assertion crashes.
+- **What:** DnsManager.testConnection(): use createSocket(hostname, port), catch Throwable, trim hostname; validateHostnameSyntax() wrapped in try/catch. MainActivity Save: state updates in withContext(Dispatchers.Main.immediate), entire launch in try/catch.
+- **Why:** App crashed when user entered custom DNS and tapped Save; ensure no throws and UI updates on main thread.
+- **Notes:** Defensive coding for emulator/device variance.
 
-### 2025-02-09 — Docs layout and agent-history mandate
+### 2025-02-09 — Save hostname only; do not enable Private DNS on save
 
-- **What:**
-  - Created `docs/` and `docs/agent-history.md` with full context/history above and a mandate that agents must append to this file when making code edits.
-  - Moved `original-plan-idea.md` to `docs/original-plan-idea.md`.
-  - Added Cursor rule in `.cursor/rules/agent-history.mdc` requiring agents to append to `docs/agent-history.md` when making edits.
-- **Why:** User requested: dump all context and history into an agent-history file; require new agents to append to it when making edits; put documentation in `docs/` while keeping `README.md` and `quick-start.md` in the repo root.
+- **What:** MainActivity Save button: removed DnsManager.enableDns() after save; only saveHostname() and success toast ("Saved. Use the switch or Quick Settings tile to turn Private DNS on.").
+- **Why:** User wanted Save to only persist the entry, not turn on Private DNS.
+- **Notes:** Toggle and tile unchanged; they still enable/disable using saved hostname.
+
+### 2025-02-09 — Unit tests for hostname validation
+
+- **What:** testImplementation for JUnit 4.13.2 and kotlin-test-junit in app/build.gradle.kts. Created app/src/test/.../DnsManagerTest.kt with tests for valid hostnames, IPv4, IPv6, empty/blank, scheme, path/slash, port, invalid format. Documented how to run in README.
+- **Why:** Plan to add simple component tests to reduce iterative manual testing.
+- **Notes:** No production code changes. Instrumented tests optional and not implemented.
+
+### 2025-02-09 — Testing documentation
+
+- **What:** Created docs/testing.md (what is tested, how to run, what is not covered, dependencies, adding tests). README Tests section and Documentation list updated to link to docs/testing.md.
+- **Why:** User requested testing and how-to-test in a separate new document.
+- **Notes:** README points to docs/testing.md for all test instructions.
+
+### 2025-02-09 — Android Studio run for unit tests
+
+- **What:** app/build.gradle.kts: added testOptions { unitTests { isReturnDefaultValues = true } }. DnsManagerTest.kt: added @RunWith(JUnit4::class) and imports. docs/testing.md: added "If Android Studio doesn't show Run" troubleshooting (Sync Gradle, Mark as Test Sources Root, Rebuild, Invalidate Caches, Run via Gradle).
+- **Why:** User reported Android Studio had no ability to run DnsManagerTest as a test and couldn't get details on lint/validity.
+- **Notes:** @RunWith(JUnit4::class) helps IDE recognize JUnit 4 test; troubleshooting covers common causes.

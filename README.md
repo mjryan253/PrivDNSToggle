@@ -65,7 +65,11 @@ When toggled **on**, the mode is set to `"hostname"` with your saved specifier. 
 ## Documentation
 
 - **[quick-start.md](quick-start.md)** — Step-by-step build and run on a physical device.
-- **docs/** — Additional docs (e.g. [original design concept](docs/original-plan-idea.md), [agent history](docs/agent-history.md)).
+- **docs/** — Additional docs (e.g. [testing](docs/testing.md), [original design concept](docs/original-plan-idea.md), [agent history](docs/agent-history.md)).
+
+## Tests
+
+See **[docs/testing.md](docs/testing.md)** for what is tested, how to run unit tests (Android Studio and command line), and how to add or change tests.
 
 ## Requirements
 
