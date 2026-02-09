@@ -62,6 +62,11 @@ The app reads and writes two `Settings.Global` values:
 
 When toggled **on**, the mode is set to `"hostname"` with your saved specifier. When toggled **off**, the mode is set to `"off"`.
 
+## Documentation
+
+- **[quick-start.md](quick-start.md)** — Step-by-step build and run on a physical device.
+- **docs/** — Additional docs (e.g. [original design concept](docs/original-plan-idea.md), [agent history](docs/agent-history.md)).
+
 ## Requirements
 
 - Android 9+ (API 28)

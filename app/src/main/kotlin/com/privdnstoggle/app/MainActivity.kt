@@ -39,7 +39,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -337,31 +339,38 @@ fun DnsSettingsScreen() {
                         return@Button
                     }
 
-                    // Step 2: connection test
+                    // Step 2: connection test (run on IO, then update UI on Main)
                     isValidating = true
                     scope.launch {
-                        val result = DnsManager.testConnection(host)
-                        isValidating = false
-
-                        if (result.isSuccess) {
-                            // Save and apply
-                            DnsManager.saveHostname(context, host)
-                            val applied = DnsManager.enableDns(context.contentResolver, host)
-                            if (applied) {
-                                saveSuccess = true
-                                Toast.makeText(
-                                    context,
-                                    "DNS saved and set to $host",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                validationError =
-                                    "Permission denied. Grant WRITE_SECURE_SETTINGS via ADB."
+                        try {
+                            val result = DnsManager.testConnection(host)
+                            withContext(Dispatchers.Main.immediate) {
+                                isValidating = false
+                                if (result.isSuccess) {
+                                    DnsManager.saveHostname(context, host)
+                                    val applied = DnsManager.enableDns(context.contentResolver, host)
+                                    if (applied) {
+                                        saveSuccess = true
+                                        Toast.makeText(
+                                            context,
+                                            "DNS saved and set to $host",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        refreshState()
+                                    } else {
+                                        validationError =
+                                            "Permission denied. Grant WRITE_SECURE_SETTINGS via ADB."
+                                    }
+                                } else {
+                                    validationError =
+                                        result.exceptionOrNull()?.message ?: "Connection failed"
+                                }
                             }
-                            refreshState()
-                        } else {
-                            validationError =
-                                result.exceptionOrNull()?.message ?: "Connection failed"
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main.immediate) {
+                                isValidating = false
+                                validationError = e.message ?: "Something went wrong"
+                            }
                         }
                     }
                 },

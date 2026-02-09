@@ -248,4 +248,4 @@ You should see the permission listed.
 
 - **Repository:** [https://github.com/mjryan253/PrivDNSToggle](https://github.com/mjryan253/PrivDNSToggle)
 - See the main [README.md](README.md) for technical details and how the app works
-- Check [original-plan-idea.md](original-plan-idea.md) for the original design concept
+- Check [docs/original-plan-idea.md](docs/original-plan-idea.md) for the original design concept
