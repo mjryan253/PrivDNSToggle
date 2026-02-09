@@ -1,5 +1,7 @@
 # PrivDNS Toggle
 
+**Repository:** [https://github.com/mjryan253/PrivDNSToggle](https://github.com/mjryan253/PrivDNSToggle)
+
 A minimal Android app to toggle Private DNS on and off — from the Quick Settings shade or the app itself.
 
 ## Features
