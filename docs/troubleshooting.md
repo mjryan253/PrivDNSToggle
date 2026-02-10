@@ -1,6 +1,22 @@
 # Troubleshooting PrivDNS Toggle
 
-If the app crashes on launch or doesn’t apply Private DNS even after granting permission, use these steps to narrow it down.
+If the app crashes on launch, won’t deploy to your device, or doesn’t apply Private DNS after granting permission, use these steps to narrow it down.
+
+---
+
+## 0. “Device not found” when running from the IDE
+
+If the build succeeds but you see **Error running 'app' — device '…' not found** (e.g. `device 'RFCT710DNLX' not found`):
+
+1. **Check the device dropdown** in Android Studio next to the Run (play) button. If it still shows an old device or “No devices”, the IDE isn’t seeing your current device.
+2. **Verify ADB sees the device:** in a terminal run `adb devices`. You should see your device serial and `device` (not `unauthorized` or empty).
+3. **If the device is missing:** reconnect the USB cable, ensure **USB debugging** is ON in Developer options, and when the phone asks “Allow USB debugging?” tap **Allow** (and optionally “Always allow from this computer”).
+4. **Refresh in Android Studio:** use **Run > Select Device** (or the device dropdown) and pick your device once it appears. Then run the app again.
+5. **Install the APK manually:** the build already produced an APK. You can install it without the IDE:
+   ```bash
+   adb install -r app\build\outputs\apk\debug\app-debug.apk
+   ```
+   (Use forward slashes on macOS/Linux.) Then open the app on the device. Grant WRITE_SECURE_SETTINGS via ADB as in section 2 below.
 
 ---
 
