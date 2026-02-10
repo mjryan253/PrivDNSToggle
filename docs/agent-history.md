@@ -93,8 +93,42 @@ Each new entry should follow this pattern:
 - **Why:** Preparing the main branch for the v0.2-beta GitHub Release.
 - **Notes:** Tagged as `v0.2-beta` pre-release on GitHub with unsigned APK attached.
 
+### 2026-02-09 — v0.3 build, tag, and release upload
+
+- **What:** Bumped version to v0.3 (versionCode 3, versionName "0.3") in app/build.gradle.kts. Added CHANGELOG entry for 0.3 (signed APK fix). Created git tag v0.3. Added scripts/upload-release-v0.3.ps1 to push tag and create/upload release via GitHub CLI.
+- **Why:** User requested assembleRelease and upload to beta release using v0.3.
+- **Notes:** Build succeeded; APK is at builds/app/outputs/apk/release/app-release.apk. Tag v0.3 is local; push and release must be run by user (git push origin v0.3; then run script or use gh release create manually). GitHub CLI (gh) was not installed in the environment.
+
+### 2026-02-09 — Fix Unresolved reference 'util' in build.gradle.kts
+
+- **What:** Added `import java.util.Properties` at top of `app/build.gradle.kts` and changed `java.util.Properties()` to `Properties()` in the signing config.
+- **Why:** In the app module script, `java` is the Java plugin extension, so `java.util` was unresolved; using the import avoids the name clash.
+
+### 2026-02-09 — Fix unsigned release APK (install failure on Samsung S21+)
+
+- **What:** Added `signingConfigs` block to `app/build.gradle.kts` with support for `keystore.properties` (for proper release signing) and automatic fallback to the debug keystore. Applied signing config to the `release` build type. Updated `.gitignore` to exclude `*.jks`, `*.keystore`, and `keystore.properties`.
+- **Why:** Release APK was unsigned, causing "App not installed as package appears to be invalid" on Samsung Galaxy S21+ (and likely all devices).
+- **Notes:** For a production release, create a dedicated release keystore and `keystore.properties` file. The debug keystore fallback ensures APKs are always installable during development and for personal distribution.
+
 ### 2026-02-09 — Replace app icons with filter-icon.png
 
 - **What:** Created `icon-gen/` directory with `convert_icon.py` (Pillow-based) and `requirements.txt`. Script takes `filter-icon.png` from repo root and produces all Android icon assets into `icon-gen/output/res/`: legacy launcher PNGs (5 densities), round launcher PNGs, adaptive-icon foreground PNGs (108dp canvas with 72dp safe zone), monochrome QS tile PNGs (white-on-transparent silhouette), and adaptive-icon XML files. Updated `colors.xml` to change `ic_launcher_background` from blue (#1B6EF3) to dark gray (#3D3D3D). Added `android:roundIcon="@mipmap/ic_launcher_round"` to `AndroidManifest.xml`. Deleted old `drawable/ic_dns.xml` vector (shield/lock), to be replaced by density-specific `ic_dns.png` files from the script output.
 - **Why:** User wants `filter-icon.png` used everywhere the app needs an icon or image.
 - **Notes:** User must run `convert_icon.py` manually, then copy `icon-gen/output/res/*` into `app/src/main/res/`. The build will not succeed until those generated PNGs are in place (the old `ic_dns.xml` vector was deleted and `@drawable/ic_dns` / `@mipmap/ic_launcher_foreground` now expect the raster replacements).
+
+### 2026-02-09 — Crash troubleshooting and defensive Settings reads
+
+- **What:** Wrapped `DnsManager.getCurrentMode`, `getCurrentHostname`, and `hasPermission` in try/catch so `Settings.Global` read/write never throws and the app does not crash on startup on devices that restrict or throw on global settings. Created `docs/troubleshooting.md` with steps to capture logcat, verify WRITE_SECURE_SETTINGS grant, use a debug build for readable stack traces, and OEM/device notes.
+- **Why:** User reported v0.3 APK crashing without applying changes despite ADB permission grant; needed a way to continue troubleshooting and to harden the app against Settings.Global failures.
+- **Notes:** If crashes persist after this change, the logcat steps in troubleshooting.md will pinpoint the cause (e.g. theme/Compose, R8, or OEM-specific code paths).
+
+### 2026-02-09 — Work profile / userId permission in troubleshooting
+
+- **What:** Updated `docs/troubleshooting.md` to explain that `dumpsys package` can show WRITE_SECURE_SETTINGS granted for one user and false for another (e.g. `userId=150`). Added instructions to grant per-user with `adb shell pm grant --user <id> ...` and to use the userId that showed `granted=false`.
+- **Why:** User's dumpsys output showed `granted=true` and `granted=false, userId=150`; permission was only granted for the main profile, not the work profile where the app runs.
+
+### 2026-02-09 — Fix Compose BOM crash (NoSuchMethodError KeyframesSpec)
+
+- **What:** Downgraded Compose BOM from `2024.01.00` to `2023.10.01` in `app/build.gradle.kts`. Added note in `docs/troubleshooting.md` describing the KeyframesSpec crash and that rebuilding from source (or a new release) fixes it.
+- **Why:** User's logcat showed FATAL EXCEPTION: `NoSuchMethodError: No virtual method at(Ljava/lang/Object;I)Landroidx/compose/animation/core/KeyframesSpec$KeyframeEntity;` — a known incompatibility in BOM 2024.01.00 where Material3 still calls the old KeyframesSpec API while animation-core changed it.
+- **Notes:** v0.3 GitHub release was built with 2024.01.00; users need to build from source with this change or install a future release (e.g. v0.4) that uses 2023.10.01 (or a BOM that includes the Material3 fix).

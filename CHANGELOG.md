@@ -2,6 +2,12 @@
 
 All notable changes to PrivDNS Toggle will be documented in this file.
 
+## [0.3] - 2026-02-09
+
+### Fixed
+
+- **Release APK signing** — release builds are now signed (keystore or debug fallback), fixing "App not installed as package appears to be invalid" on devices such as Samsung Galaxy S21+.
+
 ## [0.2-beta] - 2026-02-09
 
 First public beta release.

@@ -120,14 +120,22 @@ object DnsManager {
         }
     }
 
-    // --- Read current system state ---
+    // --- Read current system state (defensive: never throw so UI never crashes) ---
 
     fun getCurrentMode(resolver: ContentResolver): String {
-        return Settings.Global.getString(resolver, DNS_MODE_KEY) ?: MODE_OFF
+        return try {
+            Settings.Global.getString(resolver, DNS_MODE_KEY) ?: MODE_OFF
+        } catch (_: Throwable) {
+            MODE_OFF
+        }
     }
 
     fun getCurrentHostname(resolver: ContentResolver): String {
-        return Settings.Global.getString(resolver, DNS_SPECIFIER_KEY) ?: ""
+        return try {
+            Settings.Global.getString(resolver, DNS_SPECIFIER_KEY) ?: ""
+        } catch (_: Throwable) {
+            ""
+        }
     }
 
     fun isActive(resolver: ContentResolver): Boolean {
@@ -182,13 +190,12 @@ object DnsManager {
 
     fun hasPermission(context: Context): Boolean {
         return try {
-            // Try reading; if we can write we certainly can read
-            Settings.Global.getString(context.contentResolver, DNS_MODE_KEY)
-            // Attempt a no-op write to truly verify write access
             val current = getCurrentMode(context.contentResolver)
             Settings.Global.putString(context.contentResolver, DNS_MODE_KEY, current)
             true
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
+            false
+        } catch (_: Throwable) {
             false
         }
     }
