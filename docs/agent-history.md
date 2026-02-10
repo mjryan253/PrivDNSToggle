@@ -132,3 +132,15 @@ Each new entry should follow this pattern:
 - **What:** Downgraded Compose BOM from `2024.01.00` to `2023.10.01` in `app/build.gradle.kts`. Added note in `docs/troubleshooting.md` describing the KeyframesSpec crash and that rebuilding from source (or a new release) fixes it.
 - **Why:** User's logcat showed FATAL EXCEPTION: `NoSuchMethodError: No virtual method at(Ljava/lang/Object;I)Landroidx/compose/animation/core/KeyframesSpec$KeyframeEntity;` — a known incompatibility in BOM 2024.01.00 where Material3 still calls the old KeyframesSpec API while animation-core changed it.
 - **Notes:** v0.3 GitHub release was built with 2024.01.00; users need to build from source with this change or install a future release (e.g. v0.4) that uses 2023.10.01 (or a BOM that includes the Material3 fix).
+
+### 2026-02-10 — Version and release plan: beta/v* vs v* workflow
+
+- **What:** Recreated `.cursor/plans/version_and_release_automation_b9adf66b.plan.md` so the release workflow is driven by tag patterns: **beta/v*** publishes beta/prerelease, **v*** publishes full release (single workflow, two tag triggers, prerelease set from tag prefix).
+- **Why:** User requested a workflow where "beta/v*" branch/tag publishes beta or prerelease and "v*" branch/tag publishes a full release.
+- **Notes:** Plan keeps version file, Gradle wiring, and signing notes; optional enforcement that full-release tags (v*) are only created from main is still documented.
+
+### 2026-02-10 — Version file, release workflow, and generic upload script
+
+- **What:** Added `version.properties` (VERSION_NAME=0.3.1, VERSION_CODE=4). Updated `app/build.gradle.kts` to read version from it with fallbacks. Added `.github/workflows/release.yml`: trigger on tags `beta/v*` and `v*`, build release APK, enforce full release only from main, set prerelease from tag prefix, create GitHub Release with APK. Added [0.3.1] to CHANGELOG. Added "Versioning and releases" section to `quick-start.md`. Added `scripts/upload-release.ps1` (version-agnostic, reads tag and infers prerelease from `beta/` prefix).
+- **Why:** Implement the version-and-release-automation plan: single version source, tag-based beta vs production, and consistent manual release path.
+- **Notes:** Production releases (tag `v*`) only succeed when the tagged commit is on `origin/main`. Use tag `beta/v0.3.1` to publish v0.3.1 as beta.

@@ -5,6 +5,14 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val versionPropsFile = rootProject.file("version.properties")
+val versionProps = Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(versionPropsFile.inputStream())
+}
+val versionNameFromFile = versionProps.getProperty("VERSION_NAME", "0.0.1")
+val versionCodeFromFile = versionProps.getProperty("VERSION_CODE", "1").toIntOrNull() ?: 1
+
 android {
     namespace = "com.privdnstoggle.app"
     compileSdk = 34
@@ -13,8 +21,8 @@ android {
         applicationId = "com.privdnstoggle.app"
         minSdk = 28
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = versionCodeFromFile
+        versionName = versionNameFromFile
     }
 
     signingConfigs {

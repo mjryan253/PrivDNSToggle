@@ -244,6 +244,12 @@ You should see the permission listed.
 - Try cleaning the project: **Build > Clean Project**, then **Build > Rebuild Project**
 - Check the **Build** output window in Android Studio for specific error messages
 
+## Versioning and releases
+
+- **Version source:** The app version is defined in `version.properties` in the repo root (`VERSION_NAME`, `VERSION_CODE`). Bump these (and update [CHANGELOG.md](CHANGELOG.md)) when cutting a release.
+- **Tag convention:** Push tag **`beta/v*`** (e.g. `beta/v0.3.1`) to publish a **beta** (prerelease). Push tag **`v*`** (e.g. `v0.4`) **from the main branch only** to publish a **production** release. Full releases are only allowed from `main`; the release workflow enforces this.
+- See [docs/release-workflow.md](docs/release-workflow.md) for the full workflow and GitHub Actions behavior.
+
 ## Need More Help?
 
 - **Repository:** [https://github.com/mjryan253/PrivDNSToggle](https://github.com/mjryan253/PrivDNSToggle)
