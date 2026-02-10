@@ -2,6 +2,23 @@
 
 All notable changes to PrivDNS Toggle will be documented in this file.
 
+## [0.3.1] - 2026-02-09
+
+### Changed
+
+- **Version source** — Version is now read from `version.properties` (single source of truth for release automation).
+- **Release workflow** — Tag-based GitHub Action: `beta/v*` publishes a prerelease, `v*` from main publishes a full release.
+
+### Fixed
+
+- **Compose BOM** — Build uses Compose BOM 2023.10.01 to avoid KeyframesSpec NoSuchMethodError on device (fixes crash after first frame on some devices).
+
+## [0.3] - 2026-02-09
+
+### Fixed
+
+- **Release APK signing** — release builds are now signed (keystore or debug fallback), fixing "App not installed as package appears to be invalid" on devices such as Samsung Galaxy S21+.
+
 ## [0.2-beta] - 2026-02-09
 
 First public beta release.

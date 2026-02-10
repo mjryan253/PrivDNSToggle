@@ -1,7 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val versionPropsFile = rootProject.file("version.properties")
+val versionProps = Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(versionPropsFile.inputStream())
+}
+val versionNameFromFile = versionProps.getProperty("VERSION_NAME", "0.0.1")
+val versionCodeFromFile = versionProps.getProperty("VERSION_CODE", "1").toIntOrNull() ?: 1
 
 android {
     namespace = "com.privdnstoggle.app"
@@ -11,12 +21,36 @@ android {
         applicationId = "com.privdnstoggle.app"
         minSdk = 28
         targetSdk = 34
-        versionCode = 2
-        versionName = "0.2-beta"
+        versionCode = versionCodeFromFile
+        versionName = versionNameFromFile
+    }
+
+    signingConfigs {
+        create("release") {
+            val props = Properties()
+            val propsFile = rootProject.file("keystore.properties")
+            if (propsFile.exists()) {
+                props.load(propsFile.inputStream())
+                storeFile = file(props["storeFile"] as String)
+                storePassword = props["storePassword"] as String
+                keyAlias = props["keyAlias"] as String
+                keyPassword = props["keyPassword"] as String
+            } else {
+                // Fall back to debug keystore so the APK is always signed & installable
+                val debugKs = File(System.getProperty("user.home"), ".android/debug.keystore")
+                if (debugKs.exists()) {
+                    storeFile = debugKs
+                    storePassword = "android"
+                    keyAlias = "androiddebugkey"
+                    keyPassword = "android"
+                }
+            }
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -43,7 +77,8 @@ android {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
+    // 2024.01.00 BOM has KeyframesSpec API mismatch (Material3 vs animation-core) causing NoSuchMethodError on device
+    val composeBom = platform("androidx.compose:compose-bom:2023.10.01")
     implementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.12.0")
