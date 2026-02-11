@@ -39,9 +39,19 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
 
-      - name: Upload lint results
+      - name: Upload lint HTML report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lint-results
+          name: lint-results-html
           path: builds/app/outputs/lint-results-debug.html
+          retention-days: 7
+
+      - name: Upload lint XML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-results-xml
+          path: builds/app/outputs/lint-results-debug.xml
+          retention-days: 7
+          continue-on-error: true
