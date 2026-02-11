@@ -162,3 +162,9 @@ Each new entry should follow this pattern:
 - **What:** Updated `docs/debugging-with-logs.md` to include expected log format when saving an entry (example from emulator showing successful save flow). Documented that toggle on/off operations do not generate log entries. Updated all references from "debug menu" to "debug mode" to match new UI. Added note about comparing emulator logs vs device logs for debugging.
 - **Why:** User requested documentation of expected log format from emulator for comparison with Samsung device logs. Also documented that toggle operations are not logged (may be added in future).
 - **Notes:** Expected log sequence shows 9 entries from Save button click through successful DNS enable. Toggle operations intentionally not logged currently - may add in future for debugging toggle issues.
+
+### 2026-02-11 — Version bump to 0.4
+
+- **What:** Updated `version.properties` (VERSION_NAME=0.4, VERSION_CODE=7). Added [0.4] entry to CHANGELOG.md.
+- **Why:** User requested version update to 0.4 in preparation for manual release after PR and merge to main.
+- **Notes:** Version code incremented from 6 to 7. Release will be done manually after PR merge.

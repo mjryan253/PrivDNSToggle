@@ -2,6 +2,11 @@
 
 All notable changes to PrivDNS Toggle will be documented in this file.
 
+## [0.4] - 2026-02-11
+
+### Changed / Fixed / Added
+- Version bump to 0.4 for release preparation.
+
 ## [0.3.2] - YYYY-MM-DD
 
 ### Changed / Fixed / Added
