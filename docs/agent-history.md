@@ -163,6 +163,12 @@ Each new entry should follow this pattern:
 - **Why:** User requested documentation of expected log format from emulator for comparison with Samsung device logs. Also documented that toggle operations are not logged (may be added in future).
 - **Notes:** Expected log sequence shows 9 entries from Save button click through successful DNS enable. Toggle operations intentionally not logged currently - may add in future for debugging toggle issues.
 
+### 2026-02-11 — Add DebugLogger and validation edge case unit tests
+
+- **What:** Created `DebugLoggerTest.kt` with comprehensive unit tests for DebugLogger: circular buffer behavior (max entries, order preservation), `getRecentLogEntries()` edge cases (less/more/exactly total, zero, one, empty buffer, default parameter), `getAllLogs()` formatting, `getLogEntries()` list copy behavior, `clear()` functionality, and logging methods (`d()`/`e()` with and without throwables). Added 20+ validation edge case tests to `DnsManagerTest.kt`: IPv6 edge cases (brackets, compressed format, full format), hostname length limits (63/64 character labels, multiple labels), trimming behavior (leading/trailing/both spaces, only spaces), special characters (underscores, mixed case, single labels, numeric-only labels), IPv4 boundary values and invalid octets, and port detection edge cases (IPv6 with port, hostname with port).
+- **Why:** User requested unit tests for DebugLogger (new code that could regress) and additional validation edge cases to catch potential issues with IPv6 handling, length limits, and trimming. Tests provide confidence in log management and validation logic.
+- **Notes:** DebugLogger tests verify circular buffer works correctly and log retrieval methods behave as expected. Validation edge cases test boundary conditions and error paths. All tests follow existing patterns and use JUnit 4. Tests can be run with `./gradlew :app:testDebugUnitTest`.
+
 ### 2026-02-11 — Version bump to 0.4
 
 - **What:** Updated `version.properties` (VERSION_NAME=0.4, VERSION_CODE=7). Added [0.4] entry to CHANGELOG.md.
