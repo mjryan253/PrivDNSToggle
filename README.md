@@ -8,7 +8,7 @@ A minimal Android app to toggle Private DNS on and off — from the Quick Settin
 
 - **Quick Settings Tile** — pull down notification shade, tap to toggle Private DNS on/off
 - **Large Toggle Switch** — prominent horizontal switch in the app for easy on/off control
-- **DNS Validation** — syntax validation and connection testing (10s timeout) before saving
+- **DNS Connection Testing** — connection testing (10s timeout) before saving (syntax validation temporarily disabled)
 - **Dark Mode UI** — modern dark theme interface by default
 - **Lightweight** — no background services, no analytics
 
@@ -48,7 +48,7 @@ That's it. This permission **persists across app updates** — you only need to 
 - **App**: 
   - Use the large toggle switch at the top to turn Private DNS on/off
   - Enter your DNS provider hostname or IP address (e.g., `dns.nextdns.io`, `one.one.one.one`)
-  - Tap **Save** to validate syntax, test the connection (10s timeout), and apply the DNS setting
+  - Tap **Save** to test the connection (10s timeout), save the hostname, and enable Private DNS with that hostname
   - View current status and active DNS hostname
 
 ## How It Works
@@ -70,11 +70,15 @@ When toggled **on**, the mode is set to `"hostname"` with your saved specifier. 
   - [debugging-with-logs](docs/debugging-with-logs.md) — Using the built-in debug menu to diagnose issues
   - [troubleshooting](docs/troubleshooting.md) — Common issues and solutions
   - [original design concept](docs/original-plan-idea.md) — Initial design notes
-  - [agent history](docs/agent-history.md) — Development history
+  - [agent history](agent/agent-history.md) — Development history
 
 ## Tests
 
 See **[docs/testing.md](docs/testing.md)** for what is tested, how to run unit tests (Android Studio and command line), and how to add or change tests.
+
+**Test coverage:**
+- Hostname/IP validation logic (`DnsManagerTest.kt`)
+- Debug logging system (`DebugLoggerTest.kt`)
 
 ## Requirements
 

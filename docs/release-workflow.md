@@ -2,12 +2,16 @@
 
 This doc defines how tag-based workflows treat **beta** vs **production** releases.
 
+**Note:** GitHub Actions workflows are planned but not yet implemented. Currently, releases must be created manually using the scripts in `scripts/` or GitHub CLI. This document describes the intended workflow behavior.
+
 ## Branch and tag convention
 
 - **Beta releases:** Use the **beta** branch and tag with pattern **`beta/v*`** (e.g. `beta/v0.3.1`).
-  - Pushing a tag like `beta/v0.3.1` (from the `beta` branch or any branch) → build and create a **GitHub Release with prerelease = true** (beta).
+  - When workflows are implemented: Pushing a tag like `beta/v0.3.1` (from the `beta` branch or any branch) → build and create a **GitHub Release with prerelease = true** (beta).
+  - Currently: Create releases manually using `scripts/upload-release.ps1` or GitHub CLI.
 - **Production releases:** Use the **main** branch and tag with pattern **`v*`** (e.g. `v0.4`).
-  - Pushing a tag like `v0.4` **from `main`** → build and create a **GitHub Release with prerelease = false** (production).
+  - When workflows are implemented: Pushing a tag like `v0.4` **from `main`** → build and create a **GitHub Release with prerelease = false** (production).
+  - Currently: Create releases manually using `scripts/upload-release.ps1` or GitHub CLI.
 
 ## Workflow trigger and logic
 

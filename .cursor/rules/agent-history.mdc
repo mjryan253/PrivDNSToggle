@@ -1,5 +1,5 @@
 ---
-description: Require agents to append to docs/agent-history.md when making code or config edits
+description: Require agents to append to agent/agent-history.md when making code or config edits
 globs: 
 alwaysApply: true
 ---
@@ -8,7 +8,7 @@ alwaysApply: true
 
 When you make **any code or configuration edits** in this repository (including manifest, Gradle, resources, or Kotlin/Compose code), you **must**:
 
-1. **Append a new entry** to `docs/agent-history.md` at the end of the "History" section.
+1. **Append a new entry** to `agent/agent-history.md` at the end of the "History" section.
 2. Use the **entry format** defined at the top of that file:
    - **What:** Concise list of files/changes.
    - **Why:** Reason or user request.
@@ -16,3 +16,7 @@ When you make **any code or configuration edits** in this repository (including 
 3. Use a **dated heading** (e.g. `### YYYY-MM-DD — Short title`).
 
 This keeps a single, append-only record of why changes were made for future agents and maintainers.
+
+---
+
+**See also:** For comprehensive agent rules and guidelines, refer to [`agent/agent-rules.md`](../../agent/agent-rules.md).
