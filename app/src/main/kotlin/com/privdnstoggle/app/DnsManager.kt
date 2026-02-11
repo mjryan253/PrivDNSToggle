@@ -12,6 +12,7 @@ import javax.net.ssl.SSLSocketFactory
 
 object DnsManager {
 
+    private const val TAG = "DnsManager"
     private const val PREFS_NAME = "dns_prefs"
     private const val KEY_HOSTNAME = "saved_hostname"
     private const val DEFAULT_HOSTNAME = "dns.adguard.com"
@@ -46,37 +47,53 @@ object DnsManager {
      */
     fun validateHostnameSyntax(input: String): String? {
         return try {
+            DebugLogger.d(TAG, "validateHostnameSyntax: Validating '$input'")
             val trimmed = input.trim()
 
             if (trimmed.isBlank()) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Hostname is blank")
                 return "Hostname cannot be empty"
             }
 
             // Reject scheme prefixes
             if (trimmed.contains("://")) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Contains scheme")
                 return "Do not include a scheme (e.g. https://). Enter the hostname only."
             }
 
             // Reject trailing slashes
             if (trimmed.contains("/")) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Contains slash")
                 return "Do not include paths or trailing slashes. Enter the hostname only."
             }
 
             // Check IPv4 and IPv6 before port check (IPv6 contains colons, e.g. 2001:4860:4860::8888)
-            if (IPV4_REGEX.matches(trimmed)) return null
+            if (IPV4_REGEX.matches(trimmed)) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Valid IPv4")
+                return null
+            }
             val ipv6Part = trimmed.removeSurrounding("[", "]")
-            if (IPV6_REGEX.matches(ipv6Part)) return null
+            if (IPV6_REGEX.matches(ipv6Part)) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Valid IPv6")
+                return null
+            }
 
             // Reject port numbers (hostname:port only; don't confuse with IPv6)
             if (trimmed.matches(Regex(".*:\\d+$"))) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Contains port")
                 return "Do not include a port number. Enter the hostname only."
             }
 
             // Check hostname pattern
-            if (HOSTNAME_REGEX.matches(trimmed)) return null
+            if (HOSTNAME_REGEX.matches(trimmed)) {
+                DebugLogger.d(TAG, "validateHostnameSyntax: Valid hostname")
+                return null
+            }
 
+            DebugLogger.d(TAG, "validateHostnameSyntax: Invalid format")
             "Invalid hostname or IP address format"
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            DebugLogger.e(TAG, "validateHostnameSyntax: Exception during validation", e)
             "Invalid hostname or IP address format"
         }
     }
@@ -89,15 +106,18 @@ object DnsManager {
     suspend fun testConnection(hostname: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                DebugLogger.d(TAG, "testConnection: Starting connection test to '$hostname'")
                 withTimeout(CONNECTION_TIMEOUT_MS) {
                     val trimmedHost = hostname.trim()
                     if (trimmedHost.isEmpty()) {
+                        DebugLogger.e(TAG, "testConnection: Hostname is empty")
                         Result.failure(Exception("Hostname is empty"))
                     } else {
                         val factory = SSLSocketFactory.getDefault()
                         val socket: Socket = factory.createSocket(trimmedHost, DOT_PORT)
                         try {
                             socket.soTimeout = CONNECTION_TIMEOUT_MS.toInt()
+                            DebugLogger.d(TAG, "testConnection: Connection successful to '$trimmedHost'")
                             Result.success(Unit)
                         } finally {
                             try { socket.close() } catch (_: Exception) {}
@@ -105,16 +125,22 @@ object DnsManager {
                     }
                 }
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                DebugLogger.e(TAG, "testConnection: Connection timed out", e)
                 Result.failure(Exception("Connection timed out after 10 seconds"))
             } catch (e: java.net.UnknownHostException) {
+                DebugLogger.e(TAG, "testConnection: Unknown host '$hostname'", e)
                 Result.failure(Exception("Could not resolve hostname: $hostname"))
             } catch (e: java.net.ConnectException) {
+                DebugLogger.e(TAG, "testConnection: Connection refused by '$hostname'", e)
                 Result.failure(Exception("Connection refused by $hostname"))
             } catch (e: javax.net.ssl.SSLException) {
+                DebugLogger.e(TAG, "testConnection: TLS handshake failed for '$hostname'", e)
                 Result.failure(Exception("TLS handshake failed: ${e.message}"))
             } catch (e: Exception) {
+                DebugLogger.e(TAG, "testConnection: Connection failed for '$hostname'", e)
                 Result.failure(Exception("Connection failed: ${e.message ?: "Unknown error"}"))
             } catch (e: Throwable) {
+                DebugLogger.e(TAG, "testConnection: Unexpected error for '$hostname'", e)
                 Result.failure(Exception("Connection failed: ${e.message ?: "Unknown error"}"))
             }
         }
@@ -182,8 +208,11 @@ object DnsManager {
     }
 
     fun saveHostname(context: Context, hostname: String) {
+        val trimmed = hostname.trim()
+        DebugLogger.d(TAG, "saveHostname: Saving hostname '$trimmed'")
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_HOSTNAME, hostname.trim()).apply()
+        prefs.edit().putString(KEY_HOSTNAME, trimmed).apply()
+        DebugLogger.d(TAG, "saveHostname: Saved successfully")
     }
 
     // --- Permission check ---

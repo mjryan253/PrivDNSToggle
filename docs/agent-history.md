@@ -144,3 +144,21 @@ Each new entry should follow this pattern:
 - **What:** Added `version.properties` (VERSION_NAME=0.3.1, VERSION_CODE=4). Updated `app/build.gradle.kts` to read version from it with fallbacks. Added `.github/workflows/release.yml`: trigger on tags `beta/v*` and `v*`, build release APK, enforce full release only from main, set prerelease from tag prefix, create GitHub Release with APK. Added [0.3.1] to CHANGELOG. Added "Versioning and releases" section to `quick-start.md`. Added `scripts/upload-release.ps1` (version-agnostic, reads tag and infers prerelease from `beta/` prefix).
 - **Why:** Implement the version-and-release-automation plan: single version source, tag-based beta vs production, and consistent manual release path.
 - **Notes:** Production releases (tag `v*`) only succeed when the tagged commit is on `origin/main`. Use tag `beta/v0.3.1` to publish v0.3.1 as beta.
+
+### 2026-02-11 — Debug menu and Samsung crash fixes
+
+- **What:** Created `DebugLogger.kt` singleton for capturing log entries with timestamps. Added comprehensive logging throughout `DnsManager` (enableDns, saveHostname, validateHostnameSyntax, testConnection) and `MainActivity` Save button handler. Enhanced `DnsManager.enableDns()` to catch all exceptions (not just SecurityException) with detailed logging. Added collapsible "Debug Logs" menu in `MainActivity` with scrollable log display, Clear Logs, and Copy Logs buttons. Temporarily commented out DNS syntax validation in Save button to rule it out as crash cause. Added Samsung Galaxy S21+ specific troubleshooting section to `docs/troubleshooting.md` documenting known crashes with custom DNS hostnames, debugging steps, workarounds, and known limitations. Created `docs/debugging-with-logs.md` guide explaining how to use the debug menu, interpret log entries, diagnose crashes, and combine with logcat for complete debugging.
+- **Why:** App crashes on Samsung Galaxy S21+ when saving custom DNS values; need visibility into crash cause and Samsung-specific issues documented. User requested documentation for debugging using on-device logs.
+- **Notes:** Debug menu updates logs every 500ms when expanded. Validation is temporarily disabled - re-enable after identifying crash root cause. DebugLogger maintains circular buffer of last 100 entries.
+
+### 2026-02-11 — Prominent debug button with log viewer
+
+- **What:** Added `getRecentLogEntries(count: Int)` method to `DebugLogger.kt` to return the last N log entries (default 50). Replaced collapsible debug card in `MainActivity.kt` with a prominent "Show Debug" / "Hide Debug" button at the very bottom of the screen. Debug features (log viewer, Clear/Copy buttons) now appear below the button when enabled. Updated log viewer to display only the last 50 entries using `getRecentLogEntries(50)` instead of all entries. Changed state variable from `debugExpanded` to `debugModeEnabled` for clarity.
+- **Why:** User reported debug menu not visible on main screen; requested a debug button at the bottom that enables/disables debug features, including a log viewer showing the last 30-50 lines for error hunting.
+- **Notes:** Debug button is always visible at the bottom for easy access. Log viewer shows last 50 entries (configurable range 30-50). Log refresh still occurs every 500ms when debug mode is enabled.
+
+### 2026-02-11 — Document expected log format and toggle logging limitation
+
+- **What:** Updated `docs/debugging-with-logs.md` to include expected log format when saving an entry (example from emulator showing successful save flow). Documented that toggle on/off operations do not generate log entries. Updated all references from "debug menu" to "debug mode" to match new UI. Added note about comparing emulator logs vs device logs for debugging.
+- **Why:** User requested documentation of expected log format from emulator for comparison with Samsung device logs. Also documented that toggle operations are not logged (may be added in future).
+- **Notes:** Expected log sequence shows 9 entries from Save button click through successful DNS enable. Toggle operations intentionally not logged currently - may add in future for debugging toggle issues.
