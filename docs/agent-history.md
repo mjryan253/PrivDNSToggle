@@ -180,3 +180,9 @@ Each new entry should follow this pattern:
 - **What:** Updated `version.properties` (VERSION_NAME=0.4, VERSION_CODE=7). Added [0.4] entry to CHANGELOG.md.
 - **Why:** User requested version update to 0.4 in preparation for manual release after PR and merge to main.
 - **Notes:** Version code incremented from 6 to 7. Release will be done manually after PR merge.
+
+### 2026-02-11 — Fix GitHub Actions linting workflow
+
+- **What:** Updated `.github/workflows/pr-lint.yml` to fix JVM argument parsing error (`Could not find or load main class "-Xmx64m"`). Added `gradle/actions/setup-gradle@v5` step after Android SDK setup to properly configure Gradle environment. Added lint report artifact upload step using `actions/upload-artifact@v4` with `if: always()` to capture reports even when lint fails. Removed explicit `shell: bash` from Gradle commands (not needed with setup-gradle). Verified `gradle.properties` JVM args are compatible (`-Xmx2048m`).
+- **Why:** Workflow was failing with JVM class loading error. Following official GitHub Actions best practices for Android/Gradle projects requires using `gradle/actions/setup-gradle` which properly handles JVM options, caching, and dependency graphs.
+- **Notes:** The `setup-gradle` action automatically handles Gradle User Home caching and generates dependency graphs for Dependabot. Step ordering: checkout → setup-java → setup-android → setup-gradle → run commands. Lint reports are uploaded from `app/build/reports/lint-results.*` pattern.

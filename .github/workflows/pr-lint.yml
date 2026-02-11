@@ -22,13 +22,21 @@ jobs:
         with:
           api-level: 34
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
 
       - name: Run Android Lint
         run: ./gradlew --no-daemon :app:lintDebug
-        shell: bash
+
+      - name: Upload lint reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-reports
+          path: app/build/reports/lint-results.*
 
       - name: Run Unit Tests
         run: ./gradlew --no-daemon :app:testDebugUnitTest
-        shell: bash
