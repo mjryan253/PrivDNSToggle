@@ -36,10 +36,16 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Android Lint
-        run: ./gradlew --no-daemon :app:lintDebug
+        run: |
+          unset GRADLE_OPTS
+          unset JAVA_OPTS
+          ./gradlew --no-daemon :app:lintDebug
 
       - name: Run Unit Tests
-        run: ./gradlew --no-daemon :app:testDebugUnitTest
+        run: |
+          unset GRADLE_OPTS
+          unset JAVA_OPTS
+          ./gradlew --no-daemon :app:testDebugUnitTest
 
       - name: Upload lint HTML report
         uses: actions/upload-artifact@v4
