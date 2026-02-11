@@ -22,44 +22,13 @@ jobs:
         with:
           api-level: 34
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
 
       - name: Run Android Lint
-        run: |
-          unset GRADLE_OPTS
-          unset JAVA_OPTS
-          ./gradlew --no-daemon :app:lintDebug
+        run: ./gradlew --no-daemon :app:lintDebug
+        shell: bash
 
       - name: Run Unit Tests
-        run: |
-          unset GRADLE_OPTS
-          unset JAVA_OPTS
-          ./gradlew --no-daemon :app:testDebugUnitTest
-
-      - name: Upload lint HTML report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lint-results-html
-          path: builds/app/outputs/lint-results-debug.html
-          retention-days: 7
-
-      - name: Upload lint XML report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lint-results-xml
-          path: builds/app/outputs/lint-results-debug.xml
-          retention-days: 7
-          continue-on-error: true
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+        shell: bash
