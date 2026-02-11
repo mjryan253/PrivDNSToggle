@@ -177,11 +177,25 @@ fun DnsSettingsScreen() {
     var currentHost by remember { mutableStateOf(DnsManager.getCurrentHostname(context.contentResolver)) }
     var hasPermission by remember { mutableStateOf(DnsManager.hasPermission(context)) }
     var setupExpanded by remember { mutableStateOf(!hasPermission) }
+    var debugExpanded by remember { mutableStateOf(false) }
 
     // Validation / connection-test state
     var isValidating by remember { mutableStateOf(false) }
     var validationError by remember { mutableStateOf<String?>(null) }
     var saveSuccess by remember { mutableStateOf(false) }
+
+    // Debug log entries
+    var logEntries by remember { mutableStateOf(DebugLogger.getLogEntries()) }
+    
+    // Refresh log entries periodically when debug menu is expanded
+    LaunchedEffect(debugExpanded) {
+        if (debugExpanded) {
+            while (debugExpanded) {
+                logEntries = DebugLogger.getLogEntries()
+                kotlinx.coroutines.delay(500) // Update every 500ms
+            }
+        }
+    }
 
     // Refresh state when returning to the screen
     LaunchedEffect(Unit) {
@@ -331,25 +345,31 @@ fun DnsSettingsScreen() {
                     saveSuccess = false
 
                     val host = hostname.trim()
+                    DebugLogger.d("MainActivity", "Save button clicked with hostname: '$host'")
 
-                    // Step 1: syntax validation
-                    val syntaxError = DnsManager.validateHostnameSyntax(host)
-                    if (syntaxError != null) {
-                        validationError = syntaxError
-                        return@Button
-                    }
+                    // Step 1: syntax validation (TEMPORARILY DISABLED FOR DEBUGGING)
+                    // Commented out to rule out validation as cause of Samsung crash
+                    // val syntaxError = DnsManager.validateHostnameSyntax(host)
+                    // if (syntaxError != null) {
+                    //     validationError = syntaxError
+                    //     return@Button
+                    // }
 
                     // Step 2: connection test (run on IO, then update UI on Main)
                     isValidating = true
                     scope.launch {
                         try {
+                            DebugLogger.d("MainActivity", "Starting connection test for '$host'")
                             val result = DnsManager.testConnection(host)
                             withContext(Dispatchers.Main.immediate) {
                                 isValidating = false
                                 if (result.isSuccess) {
+                                    DebugLogger.d("MainActivity", "Connection test successful, saving hostname")
                                     DnsManager.saveHostname(context, host)
+                                    DebugLogger.d("MainActivity", "Calling enableDns() with '$host'")
                                     val applied = DnsManager.enableDns(context.contentResolver, host)
                                     if (applied) {
+                                        DebugLogger.d("MainActivity", "enableDns() returned true - DNS enabled successfully")
                                         saveSuccess = true
                                         Toast.makeText(
                                             context,
@@ -357,19 +377,33 @@ fun DnsSettingsScreen() {
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         refreshState()
+                                        logEntries = DebugLogger.getLogEntries()
                                     } else {
+                                        DebugLogger.e("MainActivity", "enableDns() returned false - permission denied or error")
                                         validationError =
                                             "Permission denied. Grant WRITE_SECURE_SETTINGS via ADB."
+                                        logEntries = DebugLogger.getLogEntries()
                                     }
                                 } else {
-                                    validationError =
-                                        result.exceptionOrNull()?.message ?: "Connection failed"
+                                    val errorMsg = result.exceptionOrNull()?.message ?: "Connection failed"
+                                    DebugLogger.e("MainActivity", "Connection test failed: $errorMsg")
+                                    validationError = errorMsg
+                                    logEntries = DebugLogger.getLogEntries()
                                 }
                             }
                         } catch (e: Exception) {
+                            DebugLogger.e("MainActivity", "Exception in Save button handler", e)
                             withContext(Dispatchers.Main.immediate) {
                                 isValidating = false
                                 validationError = e.message ?: "Something went wrong"
+                                logEntries = DebugLogger.getLogEntries()
+                            }
+                        } catch (e: Throwable) {
+                            DebugLogger.e("MainActivity", "Throwable in Save button handler", e)
+                            withContext(Dispatchers.Main.immediate) {
+                                isValidating = false
+                                validationError = e.message ?: "Something went wrong"
+                                logEntries = DebugLogger.getLogEntries()
                             }
                         }
                     }
@@ -500,6 +534,140 @@ fun DnsSettingsScreen() {
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
+                        }
+                    }
+                }
+            }
+
+            // ── Debug Menu (collapsible) ────────────────────────────────────
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column {
+                    TextButton(
+                        onClick = { 
+                            debugExpanded = !debugExpanded
+                            if (debugExpanded) {
+                                logEntries = DebugLogger.getLogEntries()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = if (debugExpanded)
+                                Icons.Default.ExpandLess
+                            else
+                                Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Debug Logs",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+
+                    AnimatedVisibility(visible = debugExpanded) {
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Log display
+                            Surface(
+                                color = MaterialTheme.colorScheme.inverseSurface,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                            ) {
+                                val scrollState = rememberScrollState()
+                                LaunchedEffect(logEntries.size) {
+                                    scrollState.animateScrollTo(scrollState.maxValue)
+                                }
+                                
+                                if (logEntries.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "No log entries yet",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                } else {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .verticalScroll(scrollState)
+                                            .padding(12.dp)
+                                    ) {
+                                        logEntries.forEach { entry ->
+                                            Text(
+                                                text = entry,
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    fontFamily = FontFamily.Monospace
+                                                ),
+                                                color = MaterialTheme.colorScheme.inverseOnSurface,
+                                                modifier = Modifier.padding(bottom = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Action buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        DebugLogger.clear()
+                                        logEntries = DebugLogger.getLogEntries()
+                                        Toast.makeText(
+                                            context,
+                                            "Logs cleared",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Clear Logs")
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        val logs = DebugLogger.getAllLogs()
+                                        val clipboard =
+                                            context.getSystemService(ClipboardManager::class.java)
+                                        clipboard.setPrimaryClip(
+                                            ClipData.newPlainText(
+                                                "Debug Logs",
+                                                logs
+                                            )
+                                        )
+                                        Toast.makeText(
+                                            context,
+                                            "Logs copied to clipboard",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Copy Logs")
+                                }
+                            }
                         }
                     }
                 }

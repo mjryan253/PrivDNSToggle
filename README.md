@@ -65,7 +65,12 @@ When toggled **on**, the mode is set to `"hostname"` with your saved specifier. 
 ## Documentation
 
 - **[quick-start.md](quick-start.md)** — Step-by-step build and run on a physical device.
-- **docs/** — Additional docs (e.g. [testing](docs/testing.md), [original design concept](docs/original-plan-idea.md), [agent history](docs/agent-history.md)).
+- **docs/** — Additional docs:
+  - [testing](docs/testing.md) — Unit tests and how to run them
+  - [debugging-with-logs](docs/debugging-with-logs.md) — Using the built-in debug menu to diagnose issues
+  - [troubleshooting](docs/troubleshooting.md) — Common issues and solutions
+  - [original design concept](docs/original-plan-idea.md) — Initial design notes
+  - [agent history](docs/agent-history.md) — Development history
 
 ## Tests
 
