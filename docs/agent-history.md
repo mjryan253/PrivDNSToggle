@@ -169,6 +169,12 @@ Each new entry should follow this pattern:
 - **Why:** User requested unit tests for DebugLogger (new code that could regress) and additional validation edge cases to catch potential issues with IPv6 handling, length limits, and trimming. Tests provide confidence in log management and validation logic.
 - **Notes:** DebugLogger tests verify circular buffer works correctly and log retrieval methods behave as expected. Validation edge cases test boundary conditions and error paths. All tests follow existing patterns and use JUnit 4. Tests can be run with `./gradlew :app:testDebugUnitTest`.
 
+### 2026-02-11 — GitHub Actions PR linting workflow
+
+- **What:** Created `.github/workflows/pr-lint.yml` workflow that runs automatically on pull request events (opened, synchronize, reopened). Workflow sets up JDK 17, Android SDK (API level 34) using `android-actions/setup-android@v3`, caches Gradle dependencies, runs Android Lint (`./gradlew :app:lintDebug`), runs unit tests (`./gradlew :app:testDebugUnitTest`), and uploads lint HTML report as workflow artifact. Uses standard GitHub Actions (`actions/checkout@v4`, `actions/setup-java@v4`, `actions/cache@v4`, `actions/upload-artifact@v4`) and follows Android CI best practices.
+- **Why:** User requested automated linting on pull requests to ensure code quality and catch issues before merging.
+- **Notes:** Workflow runs on `ubuntu-latest` runner. Lint results are uploaded as artifact even if workflow fails (`if: always()`). Both lint and unit tests must pass for workflow to succeed. Gradle caching speeds up subsequent workflow runs.
+
 ### 2026-02-11 — Version bump to 0.4
 
 - **What:** Updated `version.properties` (VERSION_NAME=0.4, VERSION_CODE=7). Added [0.4] entry to CHANGELOG.md.
