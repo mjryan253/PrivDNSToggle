@@ -77,6 +77,18 @@ object DebugLogger {
     }
 
     /**
+     * Returns the last N log entries (most recent first).
+     * If count is greater than the total number of entries, returns all entries.
+     */
+    fun getRecentLogEntries(count: Int = 50): List<String> {
+        return lock.withLock {
+            val size = logEntries.size
+            val startIndex = maxOf(0, size - count)
+            logEntries.subList(startIndex, size).toList()
+        }
+    }
+
+    /**
      * Clears all log entries.
      */
     fun clear() {

@@ -8,8 +8,8 @@ The app includes a built-in debug logging system that captures detailed informat
 
 1. **Open the app** on your device
 2. **Scroll to the bottom** of the main screen
-3. **Tap "Debug Logs"** to expand the debug menu
-4. The debug menu appears as a collapsible card below the "Setup Instructions" section
+3. **Tap "Show Debug"** button to enable debug mode
+4. The debug features (log viewer, Clear/Copy buttons) appear below the button when enabled
 
 ---
 
@@ -32,7 +32,33 @@ Each log entry includes:
 - **Message:** Description of what's happening
 - **Stack traces:** Full exception details when errors occur
 
-Example log entries:
+### Expected Log Format When Saving an Entry
+
+When you successfully save a DNS hostname, you should see logs in this sequence:
+
+```
+[09:28:23.389] MainActivity: Save button clicked with hostname: '67f8c3.dns.nextdns.io'
+[09:28:23.390] MainActivity: Starting connection test for '67f8c3.dns.nextdns.io'
+[09:28:23.391] DnsManager: testConnection: Starting connection test to '67f8c3.dns.nextdns.io'
+[09:28:23.409] DnsManager: testConnection: Connection successful to '67f8c3.dns.nextdns.io'
+[09:28:23.445] MainActivity: Connection test successful, saving hostname
+[09:28:23.445] DnsManager: saveHostname: Saving hostname '67f8c3.dns.nextdns.io'
+[09:28:23.446] DnsManager: saveHostname: Saved successfully
+[09:28:23.446] MainActivity: Calling enableDns() with '67f8c3.dns.nextdns.io'
+[09:28:23.448] MainActivity: enableDns() returned true - DNS enabled successfully
+```
+
+**Note:** This is the expected log sequence from an emulator. If your device (especially Samsung devices) shows different logs or crashes, compare them with this baseline to identify where the issue occurs.
+
+### What Is NOT Logged
+
+**Toggle On/Off:** The large toggle switch that enables/disables Private DNS does **not** currently generate any log entries. This means:
+- Turning Private DNS ON via the toggle → No logs
+- Turning Private DNS OFF via the toggle → No logs
+
+**Future consideration:** We may want to add logging for toggle operations to help debug issues where the toggle doesn't work as expected.
+
+Example log entries (for other operations):
 ```
 [14:23:45.123] MainActivity: Save button clicked with hostname: 'custom.dns.com'
 [14:23:45.125] DnsManager: validateHostnameSyntax: Validating 'custom.dns.com'
@@ -56,7 +82,7 @@ Example log entries:
 ### Step 1: Prepare for Logging
 
 1. **Open the app** and navigate to the main screen
-2. **Expand the Debug Logs menu** before attempting the operation that causes the crash
+2. **Tap "Show Debug"** button at the bottom to enable debug mode
 3. **Clear existing logs** by tapping "Clear Logs" (optional, but helps focus on the current issue)
 
 ### Step 2: Reproduce the Issue
@@ -64,7 +90,7 @@ Example log entries:
 1. **Enter a DNS hostname** in the input field (or use the one that causes crashes)
 2. **Tap "Save"** button
 3. **Watch the logs** as they appear in real-time
-4. The logs update automatically every 500ms when the debug menu is expanded
+4. The logs update automatically every 500ms when debug mode is enabled
 
 ### Step 3: Analyze the Logs
 
@@ -149,19 +175,21 @@ The copied logs include all entries from the current session, formatted with tim
 ## Tips for Effective Debugging
 
 1. **Clear logs before testing:** Start with a clean slate for each test
-2. **Keep debug menu expanded:** Logs update automatically when expanded
+2. **Keep debug mode enabled:** Logs update automatically when debug mode is enabled
 3. **Test one thing at a time:** Change one variable (hostname, network, etc.) per test
 4. **Note the exact hostname:** Some hostnames work while others don't - the logs show exactly what was tried
 5. **Compare working vs. failing:** Compare logs from a working DNS (like "dns.adguard.com") with a failing one
+6. **Compare emulator vs. device:** Use the expected log format above as a baseline to compare against device-specific behavior
 
 ---
 
 ## Limitations
 
 - **Logs are in-memory only:** Logs are cleared when the app is closed
-- **Maximum 100 entries:** Older entries are automatically removed
+- **Maximum 100 entries:** Older entries are automatically removed (log viewer shows last 50)
 - **No persistence:** Logs don't survive app restarts
-- **Real-time only:** You must have the debug menu open to see logs as they happen
+- **Real-time only:** You must have debug mode enabled to see logs as they happen
+- **Toggle operations not logged:** The toggle switch does not generate log entries (may be added in future)
 
 ---
 
@@ -214,13 +242,17 @@ The debug menu logs provide app-level context, while logcat provides system-leve
 
 ## Troubleshooting the Debug Menu
 
+**Debug button not visible:**
+- Scroll to the very bottom of the main screen
+- The "Show Debug" / "Hide Debug" button is always visible at the bottom
+
 **Debug menu not showing logs:**
-- Ensure the menu is expanded (tap "Debug Logs")
+- Ensure debug mode is enabled (tap "Show Debug" button)
 - Try clearing and reproducing the issue
 - Check if the app has crashed (logs may not update after crash)
 
 **Logs not updating:**
-- Ensure the debug menu is expanded (auto-update only works when expanded)
+- Ensure debug mode is enabled (auto-update only works when enabled)
 - Wait a moment (updates every 500ms)
 - Try scrolling to refresh the view
 
