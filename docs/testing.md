@@ -11,8 +11,11 @@ Unit tests run on your machine's JVM. No device or emulator is required. They ar
 | What | Where | Purpose |
 |------|--------|---------|
 | Hostname/IP validation | `DnsManager.validateHostnameSyntax()` | Ensures valid hostnames and IPs are accepted and invalid input is rejected with the right error messages. |
+| Debug logging system | `DebugLogger` | Ensures circular buffer, log retrieval, and logging methods work correctly. |
 
-**Test class:** `app/src/test/kotlin/com/privdnstoggle/app/DnsManagerTest.kt`
+**Test classes:**
+- `app/src/test/kotlin/com/privdnstoggle/app/DnsManagerTest.kt`
+- `app/src/test/kotlin/com/privdnstoggle/app/DebugLoggerTest.kt`
 
 **Cases covered:**
 
@@ -24,6 +27,15 @@ Unit tests run on your machine's JVM. No device or emulator is required. They ar
 - **Path or slash** (e.g. `dns.example.com/path`) → error about paths/slashes.
 - **Port in input** (e.g. `dns.example.com:853`) → error about not including a port.
 - **Invalid format** (e.g. `not valid..hostname`, `-leading.com`) → error: "Invalid hostname or IP address format".
+
+**Test class:** `app/src/test/kotlin/com/privdnstoggle/app/DebugLoggerTest.kt`
+
+**Cases covered:**
+- **Circular buffer** — maintains maximum 100 entries, removes oldest when limit exceeded
+- **Log retrieval** — `getRecentLogEntries()` returns last N entries (default 50), handles edge cases (empty buffer, count > total, zero count)
+- **Log formatting** — `getAllLogs()` returns formatted string with newlines, `getLogEntries()` returns list copy
+- **Clear functionality** — `clear()` removes all entries
+- **Logging methods** — `d()` and `e()` add entries with timestamps, optional throwable includes stack traces
 
 ### Not covered by automated tests
 
@@ -38,10 +50,10 @@ Unit tests run on your machine's JVM. No device or emulator is required. They ar
 
 1. Open the project in Android Studio.
 2. In the **Project** view, go to `app/src/test/kotlin/com/privdnstoggle/app/`.
-3. Right-click **DnsManagerTest.kt**.
-4. Choose **Run 'DnsManagerTest'**.
+3. Right-click **DnsManagerTest.kt** or **DebugLoggerTest.kt**.
+4. Choose **Run 'DnsManagerTest'** or **Run 'DebugLoggerTest'**.
 
-You can also open `DnsManagerTest.kt`, then click the run icon in the gutter next to the class or a single test method to run all tests or that method only.
+You can also open either test file, then click the run icon in the gutter next to the class or a single test method to run all tests or that method only. To run all unit tests, right-click the `app/src/test` directory and choose **Run Tests**.
 
 ### If Android Studio doesn't show "Run" for the test
 
@@ -87,6 +99,7 @@ These are declared in `app/build.gradle.kts` under `testImplementation`. No extr
 ## Adding or changing tests
 
 - New tests for **hostname validation** → add or edit `@Test` methods in `DnsManagerTest.kt`. Keep assertions in line with the behavior described in [DnsManager.kt](../app/src/main/kotlin/com/privdnstoggle/app/DnsManager.kt) (e.g. exact error strings).
+- New tests for **debug logging** → add or edit `@Test` methods in `DebugLoggerTest.kt`. Test new methods or edge cases for existing functionality.
 - To add **instrumented tests** (device/emulator) later, add `androidTestImplementation` dependencies and put tests in `app/src/androidTest/`. See the Android docs on [instrumented tests](https://developer.android.com/training/testing/instrumented-tests) for setup.
 
 ## See also

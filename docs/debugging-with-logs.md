@@ -34,7 +34,7 @@ Each log entry includes:
 
 ### Expected Log Format When Saving an Entry
 
-When you successfully save a DNS hostname, you should see logs in this sequence:
+When you successfully save a DNS hostname, you should see logs in this sequence. Note: Syntax validation is temporarily disabled, so validation logs will not appear.
 
 ```
 [09:28:23.389] MainActivity: Save button clicked with hostname: '67f8c3.dns.nextdns.io'
@@ -58,11 +58,9 @@ When you successfully save a DNS hostname, you should see logs in this sequence:
 
 **Future consideration:** We may want to add logging for toggle operations to help debug issues where the toggle doesn't work as expected.
 
-Example log entries (for other operations):
+Example log entries (for other operations). Note: Validation logs are not shown as syntax validation is temporarily disabled:
 ```
 [14:23:45.123] MainActivity: Save button clicked with hostname: 'custom.dns.com'
-[14:23:45.125] DnsManager: validateHostnameSyntax: Validating 'custom.dns.com'
-[14:23:45.130] DnsManager: validateHostnameSyntax: Valid hostname
 [14:23:45.200] MainActivity: Starting connection test for 'custom.dns.com'
 [14:23:45.500] DnsManager: testConnection: Starting connection test to 'custom.dns.com'
 [14:23:46.000] DnsManager: testConnection: Connection successful to 'custom.dns.com'
@@ -98,9 +96,8 @@ Look for these key indicators:
 
 **Before the crash:**
 - What hostname was entered?
-- Did validation pass or fail?
 - Did the connection test succeed?
-- Which function was called last?
+- Which function was called last? (usually `enableDns()` for DNS setting issues)
 
 **At the point of crash:**
 - What exception type was thrown? (e.g., `IllegalArgumentException`, `SecurityException`, `NullPointerException`)
@@ -110,12 +107,12 @@ Look for these key indicators:
 **Example crash log:**
 ```
 [14:23:46.250] MainActivity: Calling enableDns() with 'custom.dns.com'
-[14:23:46.300] DnsManager: enableDns: Setting mode to hostname
-[14:23:46.350] DnsManager: enableDns: Setting specifier to 'custom.dns.com'
 [14:23:46.400] DnsManager: enableDns: Exception - IllegalArgumentException: Invalid DNS hostname
 android.content.ContentResolver.putString(ContentResolver.java:1234)
-com.privdnstoggle.app.DnsManager.enableDns(DnsManager.kt:150)
+com.privdnstoggle.app.DnsManager.enableDns(DnsManager.kt:173)
 ```
+
+Note: The current `enableDns()` implementation only catches `SecurityException`, so other exceptions (like `IllegalArgumentException` on Samsung devices) may cause crashes that aren't logged by the app itself. Check logcat for full crash details.
 
 ---
 
@@ -229,12 +226,9 @@ The debug menu logs provide app-level context, while logcat provides system-leve
    [14:23:46.150] DnsManager: saveHostname: Saving hostname 'custom.dns.example.com'
    [14:23:46.200] DnsManager: saveHostname: Saved successfully
    [14:23:46.250] MainActivity: Calling enableDns() with 'custom.dns.example.com'
-   [14:23:46.300] DnsManager: enableDns: Setting mode to hostname
-   [14:23:46.350] DnsManager: enableDns: Setting specifier to 'custom.dns.example.com'
-   [14:23:46.400] DnsManager: enableDns: Exception - IllegalArgumentException: Invalid DNS hostname
    ```
 
-4. **Analysis:** The crash occurs in `enableDns()` when setting the specifier. The exception is `IllegalArgumentException`, suggesting Samsung is rejecting the hostname format even though it passed validation and connection test.
+4. **Analysis:** The crash occurs in `enableDns()` when calling `Settings.Global.putString()`. The exception (likely `IllegalArgumentException` on Samsung devices) is not caught by the current implementation (which only catches `SecurityException`), causing a crash. Check logcat for the full exception details.
 
 5. **Next steps:** Try a different hostname format, check Samsung-specific restrictions, or report the issue with these logs.
 

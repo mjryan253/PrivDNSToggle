@@ -1,6 +1,6 @@
 # Agent history
 
-**Mandate for AI agents:** When you make code or configuration edits in this repository, you **must** append a new dated entry to this file (`docs/agent-history.md`) summarizing what you changed and why. Keep entries concise but enough for future agents and maintainers to understand the evolution of the project.
+**Mandate for AI agents:** When you make code or configuration edits in this repository, you **must** append a new dated entry to this file (`agent/agent-history.md`) summarizing what you changed and why. Keep entries concise but enough for future agents and maintainers to understand the evolution of the project.
 
 ---
 
@@ -169,8 +169,44 @@ Each new entry should follow this pattern:
 - **Why:** User requested unit tests for DebugLogger (new code that could regress) and additional validation edge cases to catch potential issues with IPv6 handling, length limits, and trimming. Tests provide confidence in log management and validation logic.
 - **Notes:** DebugLogger tests verify circular buffer works correctly and log retrieval methods behave as expected. Validation edge cases test boundary conditions and error paths. All tests follow existing patterns and use JUnit 4. Tests can be run with `./gradlew :app:testDebugUnitTest`.
 
+### 2026-02-11 — GitHub Actions PR linting workflow
+
+- **What:** Created `.github/workflows/pr-lint.yml` workflow that runs automatically on pull request events (opened, synchronize, reopened). Workflow sets up JDK 17, Android SDK (API level 34) using `android-actions/setup-android@v3`, caches Gradle dependencies, runs Android Lint (`./gradlew :app:lintDebug`), runs unit tests (`./gradlew :app:testDebugUnitTest`), and uploads lint HTML report as workflow artifact. Uses standard GitHub Actions (`actions/checkout@v4`, `actions/setup-java@v4`, `actions/cache@v4`, `actions/upload-artifact@v4`) and follows Android CI best practices.
+- **Why:** User requested automated linting on pull requests to ensure code quality and catch issues before merging.
+- **Notes:** Workflow runs on `ubuntu-latest` runner. Lint results are uploaded as artifact even if workflow fails (`if: always()`). Both lint and unit tests must pass for workflow to succeed. Gradle caching speeds up subsequent workflow runs.
+
 ### 2026-02-11 — Version bump to 0.4
 
 - **What:** Updated `version.properties` (VERSION_NAME=0.4, VERSION_CODE=7). Added [0.4] entry to CHANGELOG.md.
 - **Why:** User requested version update to 0.4 in preparation for manual release after PR and merge to main.
 - **Notes:** Version code incremented from 6 to 7. Release will be done manually after PR merge.
+
+### 2026-02-11 — Fix GitHub Actions linting workflow
+
+- **What:** Updated `.github/workflows/pr-lint.yml` to fix JVM argument parsing error (`Could not find or load main class "-Xmx64m"`). Added `gradle/actions/setup-gradle@v5` step after Android SDK setup to properly configure Gradle environment. Added lint report artifact upload step using `actions/upload-artifact@v4` with `if: always()` to capture reports even when lint fails. Removed explicit `shell: bash` from Gradle commands (not needed with setup-gradle). Verified `gradle.properties` JVM args are compatible (`-Xmx2048m`).
+- **Why:** Workflow was failing with JVM class loading error. Following official GitHub Actions best practices for Android/Gradle projects requires using `gradle/actions/setup-gradle` which properly handles JVM options, caching, and dependency graphs.
+- **Notes:** The `setup-gradle` action automatically handles Gradle User Home caching and generates dependency graphs for Dependabot. Step ordering: checkout → setup-java → setup-android → setup-gradle → run commands. Lint reports are uploaded from `app/build/reports/lint-results.*` pattern.
+
+### 2026-02-11 — Rebuild Android linting workflow from scratch
+
+- **What:** Created new `.github/workflows/pr-lint.yml` workflow file following official GitHub Actions documentation and Android/Gradle best practices. Workflow includes: `actions/checkout@v5`, `actions/setup-java@v4` (JDK 17, Temurin), `android-actions/setup-android@v3` (API level 34), `gradle/actions/setup-gradle@v5` (official Gradle action), runs `./gradlew --no-daemon :app:lintDebug`, uploads lint reports as artifacts (`app/build/reports/lint-results.*`), and runs unit tests. Proper step ordering ensures correct environment setup.
+- **Why:** User removed previous workflow and requested rebuild from scratch according to official documentation to fix JVM argument parsing errors and follow best practices.
+- **Notes:** The `gradle/actions/setup-gradle@v5` action properly configures JVM options (fixes "-Xmx64m" error), automatically handles caching, and generates dependency graphs. All actions use pinned major versions for stability. Workflow triggers on pull request events (opened, synchronize, reopened).
+
+### 2026-02-11 — Move agent files to agent/ directory
+
+- **What:** Created `agent/` directory and moved `docs/agent-history.md` to `agent/agent-history.md` and `agent-rules.md` to `agent/agent-rules.md`. Updated all references: README.md link, `.cursor/rules/agent-history.mdc` path, and internal references in both moved files. Deleted old files from their previous locations.
+- **Why:** User requested agent-related files be organized in a dedicated `agent/` directory at root level.
+- **Notes:** All file references updated to reflect new location. Agent history rule in `.cursor/rules/agent-history.mdc` now points to `agent/agent-history.md`.
+
+### 2026-02-11 — Add agent-rules reference to cursor rule file
+
+- **What:** Added reference to `agent/agent-rules.md` in `.cursor/rules/agent-history.mdc` so agents are directed to the comprehensive ruleset.
+- **Why:** User requested the cursor rule file reference the agent-rules.md file as the ruleset for cursor agents.
+- **Notes:** Reference added at the end of the agent-history.mdc file with a "See also" section pointing to the full ruleset.
+
+### 2026-02-11 — Comprehensive documentation update and audit
+
+- **What:** Updated all documentation files to match actual codebase implementation. Fixed README.md (validation status, Save behavior, test coverage), quick-start.md (Save description, validation note, GitHub Actions references), docs/testing.md (added DebugLoggerTest section), docs/troubleshooting.md (corrected enableDns error handling description), docs/debugging-with-logs.md (noted validation disabled, updated log examples), CHANGELOG.md (removed placeholder 0.3.2 entry), docs/release-workflow.md (noted workflows not yet implemented). Verified all code references, file paths, versions, and links match actual codebase.
+- **Why:** User requested in-depth documentation audit to compare codebase with documentation and update where needed, removing outdated references.
+- **Notes:** Key changes: validation is temporarily disabled (commented out in code), Save button enables DNS (not just saves), enableDns() only catches SecurityException (not all exceptions), GitHub Actions workflows are planned but not implemented, DebugLoggerTest coverage documented, placeholder CHANGELOG entry removed.

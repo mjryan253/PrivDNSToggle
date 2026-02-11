@@ -156,10 +156,10 @@ You should see the permission listed.
 2. You'll see a large toggle switch at the top (currently OFF)
 3. Enter your desired DNS hostname or IP address in the input field below (e.g., `dns.nextdns.io`, `one.one.one.one`, `dns.cloudflare.com`)
 4. Tap **Save** — the app will:
-   - Validate the hostname/IP syntax
    - Test the connection to port 853 (DNS-over-TLS) with a 10-second timeout
-   - Save and apply the DNS setting if successful
-   - Show an error message if validation or connection fails
+   - Save the hostname and enable Private DNS with that hostname if successful
+   - Show an error message if connection fails
+   - Note: Syntax validation is temporarily disabled
 5. Once saved, you can use the large toggle switch to turn Private DNS on/off
 
 ## Step 6: You're Ready!
@@ -175,9 +175,10 @@ You should see the permission listed.
 - Open **PrivDNS Toggle** to:
   - **Toggle Private DNS**: Use the large horizontal switch at the top to turn Private DNS on/off
   - **Change DNS Provider**: Enter a new hostname/IP in the input field and tap **Save**
-    - The app validates syntax (hostname, IPv4, or IPv6 format)
     - Tests connectivity to the DNS provider (10-second timeout)
-    - Shows inline error messages if validation or connection fails
+    - Saves the hostname and enables Private DNS with that hostname if successful
+    - Shows inline error messages if connection fails
+    - Note: Syntax validation is temporarily disabled
   - **View Status**: See current Private DNS state and active hostname at the top
 
 ## Troubleshooting
@@ -247,8 +248,8 @@ You should see the permission listed.
 ## Versioning and releases
 
 - **Version source:** The app version is defined in `version.properties` in the repo root (`VERSION_NAME`, `VERSION_CODE`). Bump these (and update [CHANGELOG.md](CHANGELOG.md)) when cutting a release.
-- **Tag convention:** Push tag **`beta/v*`** (e.g. `beta/v0.3.1`) to publish a **beta** (prerelease). Push tag **`v*`** (e.g. `v0.4`) **from the main branch only** to publish a **production** release. Full releases are only allowed from `main`; the release workflow enforces this.
-- See [docs/release-workflow.md](docs/release-workflow.md) for the full workflow and GitHub Actions behavior.
+- **Tag convention:** Push tag **`beta/v*`** (e.g. `beta/v0.3.1`) to publish a **beta** (prerelease). Push tag **`v*`** (e.g. `v0.4`) **from the main branch only** to publish a **production** release. Full releases are only allowed from `main`.
+- See [docs/release-workflow.md](docs/release-workflow.md) for the planned workflow (GitHub Actions workflows are planned but not yet implemented).
 
 ## Need More Help?
 

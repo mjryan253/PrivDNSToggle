@@ -119,7 +119,7 @@ Samsung Galaxy S21+ (and other Samsung devices) may crash when setting custom DN
 
 **Possible Causes:**
 - Samsung One UI may validate DNS hostnames more strictly than stock Android
-- Samsung may throw exceptions beyond `SecurityException` (e.g., `IllegalArgumentException`, `NullPointerException`) when setting `private_dns_specifier`
+- Samsung may throw exceptions beyond `SecurityException` (e.g., `IllegalArgumentException`, `NullPointerException`) when setting `private_dns_specifier`. Note: The current `enableDns()` implementation only catches `SecurityException`, so other exceptions may cause crashes.
 - Samsung's implementation of `Settings.Global` may have additional restrictions or validation
 
 **Debugging Steps:**
