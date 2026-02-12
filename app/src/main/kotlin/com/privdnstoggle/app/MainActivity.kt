@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -52,10 +55,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DnsSettingsScreen()
+                    val viewModel: DnsSettingsViewModel = viewModel()
+                    DnsSettingsScreen(viewModel = viewModel)
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh DNS state when user returns to the app (e.g. after toggling from quick settings)
+        ViewModelProvider(this)[DnsSettingsViewModel::class.java].refresh()
     }
 }
 
@@ -71,11 +81,16 @@ fun PrivDnsTheme(content: @Composable () -> Unit) {
 @Composable
 fun dynamicColorScheme(): ColorScheme {
     val context = LocalContext.current
-    return if (android.os.Build.VERSION.SDK_INT >= 31) {
+    val baseScheme = if (android.os.Build.VERSION.SDK_INT >= 31) {
         dynamicDarkColorScheme(context)
     } else {
         darkColorScheme()
     }
+    return baseScheme.copy(
+        background = Color.Black,
+        surface = Color.Black,
+        surfaceVariant = Color(0xFF1A1A1A)
+    )
 }
 
 // ── Large Toggle Switch ──────────────────────────────────────────────────────
@@ -167,16 +182,21 @@ fun LargeToggleSwitch(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DnsSettingsScreen() {
+fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    var hostname by remember { mutableStateOf(DnsManager.getSavedHostname(context)) }
-    var isActive by remember { mutableStateOf(DnsManager.isActive(context.contentResolver)) }
-    var currentHost by remember { mutableStateOf(DnsManager.getCurrentHostname(context.contentResolver)) }
-    var hasPermission by remember { mutableStateOf(DnsManager.hasPermission(context)) }
-    var setupExpanded by remember { mutableStateOf(!hasPermission) }
+    val isActive by viewModel.isActive.collectAsStateWithLifecycle()
+    val currentHost by viewModel.currentHost.collectAsStateWithLifecycle()
+    val hasPermission by viewModel.hasPermission.collectAsStateWithLifecycle()
+    val savedHostname by viewModel.savedHostname.collectAsStateWithLifecycle()
+
+    var hostname by remember(savedHostname) { mutableStateOf(savedHostname) }
+    LaunchedEffect(savedHostname) { hostname = savedHostname }
+
+    var setupExpanded by remember { mutableStateOf(true) }
+
     var debugModeEnabled by remember { mutableStateOf(false) }
 
     // Validation / connection-test state
@@ -195,20 +215,6 @@ fun DnsSettingsScreen() {
                 kotlinx.coroutines.delay(500) // Update every 500ms
             }
         }
-    }
-
-    // Refresh state when returning to the screen
-    LaunchedEffect(Unit) {
-        isActive = DnsManager.isActive(context.contentResolver)
-        currentHost = DnsManager.getCurrentHostname(context.contentResolver)
-        hasPermission = DnsManager.hasPermission(context)
-        setupExpanded = !hasPermission
-    }
-
-    fun refreshState() {
-        isActive = DnsManager.isActive(context.contentResolver)
-        currentHost = DnsManager.getCurrentHostname(context.contentResolver)
-        hasPermission = DnsManager.hasPermission(context)
     }
 
     Scaffold(
@@ -254,7 +260,7 @@ fun DnsSettingsScreen() {
                 checked = isActive,
                 onToggle = { wantOn ->
                     if (wantOn) {
-                        val host = DnsManager.getSavedHostname(context)
+                        val host = savedHostname
                         if (host.isBlank()) {
                             Toast.makeText(
                                 context,
@@ -263,7 +269,7 @@ fun DnsSettingsScreen() {
                             ).show()
                             return@LargeToggleSwitch
                         }
-                        val success = DnsManager.enableDns(context.contentResolver, host)
+                        val success = viewModel.enableDns(host)
                         if (!success) {
                             Toast.makeText(
                                 context,
@@ -272,7 +278,7 @@ fun DnsSettingsScreen() {
                             ).show()
                         }
                     } else {
-                        val success = DnsManager.disableDns(context.contentResolver)
+                        val success = viewModel.disableDns()
                         if (!success) {
                             Toast.makeText(
                                 context,
@@ -281,7 +287,6 @@ fun DnsSettingsScreen() {
                             ).show()
                         }
                     }
-                    refreshState()
                 },
                 enabled = !isValidating
             )
@@ -328,10 +333,11 @@ fun DnsSettingsScreen() {
                         }
                         saveSuccess -> {
                             Text(
-                                text = "Saved and connected successfully",
+                                text = "Saved. Use the switch to enable Private DNS.",
                                 color = ColorOn
                             )
                         }
+                        else -> {}
                     }
                 }
             )
@@ -365,28 +371,15 @@ fun DnsSettingsScreen() {
                                 isValidating = false
                                 if (result.isSuccess) {
                                     DebugLogger.d("MainActivity", "Connection test successful, saving hostname")
-                                    DnsManager.saveHostname(context, host)
-                                    DebugLogger.d("MainActivity", "Calling enableDns() with '$host'")
-                                    val applied = DnsManager.enableDns(context.contentResolver, host)
-                                    if (applied) {
-                                        DebugLogger.d("MainActivity", "enableDns() returned true - DNS enabled successfully")
-                                        saveSuccess = true
-                                        Toast.makeText(
-                                            context,
-                                            "DNS saved and set to $host",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        refreshState()
-                                        if (debugModeEnabled) {
-                                            logEntries = DebugLogger.getRecentLogEntries(50)
-                                        }
-                                    } else {
-                                        DebugLogger.e("MainActivity", "enableDns() returned false - permission denied or error")
-                                        validationError =
-                                            "Permission denied. Grant WRITE_SECURE_SETTINGS via ADB."
-                                        if (debugModeEnabled) {
-                                            logEntries = DebugLogger.getRecentLogEntries(50)
-                                        }
+                                    viewModel.saveHostname(host)
+                                    saveSuccess = true
+                                    Toast.makeText(
+                                        context,
+                                        "Saved. Use the switch or Quick Settings tile to turn Private DNS on.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    if (debugModeEnabled) {
+                                        logEntries = DebugLogger.getRecentLogEntries(50)
                                     }
                                 } else {
                                     val errorMsg = result.exceptionOrNull()?.message ?: "Connection failed"
@@ -551,116 +544,118 @@ fun DnsSettingsScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Debug Button ────────────────────────────────────────────────────
+            // ── Debug Button & panel (debug builds only) ──────────────────────────
 
-            Button(
-                onClick = { 
-                    debugModeEnabled = !debugModeEnabled
-                    if (debugModeEnabled) {
-                        logEntries = DebugLogger.getRecentLogEntries(50)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = if (debugModeEnabled) "Hide Debug" else "Show Debug",
-                    fontSize = 16.sp
-                )
-            }
-
-            // ── Debug Features (shown when enabled) ───────────────────────────────
-
-            AnimatedVisibility(visible = debugModeEnabled) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Log display
-                    Surface(
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    ) {
-                        val scrollState = rememberScrollState()
-                        LaunchedEffect(logEntries.size) {
-                            scrollState.animateScrollTo(scrollState.maxValue)
+            if (BuildConfig.DEBUG) {
+                Button(
+                    onClick = {
+                        debugModeEnabled = !debugModeEnabled
+                        if (debugModeEnabled) {
+                            logEntries = DebugLogger.getRecentLogEntries(50)
                         }
-                        
-                        if (logEntries.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No log entries yet",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
-                                )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = if (debugModeEnabled) "Hide Debug" else "Show Debug",
+                        fontSize = 16.sp
+                    )
+                }
+
+                // ── Debug Features (shown when enabled) ───────────────────────────────
+
+                AnimatedVisibility(visible = debugModeEnabled) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Log display
+                        Surface(
+                            color = MaterialTheme.colorScheme.inverseSurface,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                        ) {
+                            val scrollState = rememberScrollState()
+                            LaunchedEffect(logEntries.size) {
+                                scrollState.animateScrollTo(scrollState.maxValue)
                             }
-                        } else {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .verticalScroll(scrollState)
-                                    .padding(12.dp)
-                            ) {
-                                logEntries.forEach { entry ->
+
+                            if (logEntries.isEmpty()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text(
-                                        text = entry,
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = FontFamily.Monospace
-                                        ),
-                                        color = MaterialTheme.colorScheme.inverseOnSurface,
-                                        modifier = Modifier.padding(bottom = 4.dp)
+                                        text = "No log entries yet",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
                                     )
+                                }
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .verticalScroll(scrollState)
+                                        .padding(12.dp)
+                                ) {
+                                    logEntries.forEach { entry ->
+                                        Text(
+                                            text = entry,
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = FontFamily.Monospace
+                                            ),
+                                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // Action buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                DebugLogger.clear()
-                                logEntries = DebugLogger.getRecentLogEntries(50)
-                                Toast.makeText(
-                                    context,
-                                    "Logs cleared",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            modifier = Modifier.weight(1f)
+                        // Action buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Clear Logs")
-                        }
+                            OutlinedButton(
+                                onClick = {
+                                    DebugLogger.clear()
+                                    logEntries = DebugLogger.getRecentLogEntries(50)
+                                    Toast.makeText(
+                                        context,
+                                        "Logs cleared",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Clear Logs")
+                            }
 
-                        OutlinedButton(
-                            onClick = {
-                                val logs = DebugLogger.getAllLogs()
-                                val clipboard =
-                                    context.getSystemService(ClipboardManager::class.java)
-                                clipboard.setPrimaryClip(
-                                    ClipData.newPlainText(
-                                        "Debug Logs",
-                                        logs
+                            OutlinedButton(
+                                onClick = {
+                                    val logs = DebugLogger.getAllLogs()
+                                    val clipboard =
+                                        context.getSystemService(ClipboardManager::class.java)
+                                    clipboard.setPrimaryClip(
+                                        ClipData.newPlainText(
+                                            "Debug Logs",
+                                            logs
+                                        )
                                     )
-                                )
-                                Toast.makeText(
-                                    context,
-                                    "Logs copied to clipboard",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Copy Logs")
+                                    Toast.makeText(
+                                        context,
+                                        "Logs copied to clipboard",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Copy Logs")
+                            }
                         }
                     }
                 }

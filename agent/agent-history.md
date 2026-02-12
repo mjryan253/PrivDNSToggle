@@ -210,3 +210,73 @@ Each new entry should follow this pattern:
 - **What:** Updated all documentation files to match actual codebase implementation. Fixed README.md (validation status, Save behavior, test coverage), quick-start.md (Save description, validation note, GitHub Actions references), docs/testing.md (added DebugLoggerTest section), docs/troubleshooting.md (corrected enableDns error handling description), docs/debugging-with-logs.md (noted validation disabled, updated log examples), CHANGELOG.md (removed placeholder 0.3.2 entry), docs/release-workflow.md (noted workflows not yet implemented). Verified all code references, file paths, versions, and links match actual codebase.
 - **Why:** User requested in-depth documentation audit to compare codebase with documentation and update where needed, removing outdated references.
 - **Notes:** Key changes: validation is temporarily disabled (commented out in code), Save button enables DNS (not just saves), enableDns() only catches SecurityException (not all exceptions), GitHub Actions workflows are planned but not implemented, DebugLoggerTest coverage documented, placeholder CHANGELOG entry removed.
+
+### 2026-02-11 — README ADB options: Minimal ADB primary, Android Studio alternative
+
+- **What:** Updated README.md “Don’t have ADB?” note: Minimal ADB and Fastboot (https://minimaladbandfastboot.com/) is now the primary intended option; full ADB via Android Studio (link to download) is noted as the alternative.
+- **Why:** User requested Minimal ADB as the main option for running the permission command, with a note that the full suite comes with Android Studio.
+- **Notes:** None.
+
+### 2025-02-11 — Sync Private DNS UI state with system (ViewModel + ContentObserver)
+
+- **What:** Added lifecycle-viewmodel-compose, lifecycle-runtime-ktx, lifecycle-runtime-compose to app/build.gradle.kts. Created DnsSettingsViewModel (StateFlows for isActive, currentHost, hasPermission, savedHostname; ContentObserver on Settings.Global for private_dns_mode and private_dns_specifier; refresh(), enableDns(), disableDns(), saveHostname(); unregister in onCleared). MainActivity: obtain ViewModel, pass to DnsSettingsScreen; onResume() calls ViewModelProvider(this)[DnsSettingsViewModel::class.java].refresh(). DnsSettingsScreen now takes viewModel, uses collectAsStateWithLifecycle() for ViewModel flows; toggle and Save call viewModel methods; removed LaunchedEffect(Unit) and local refreshState() for DNS state.
+- **Why:** Slider and details did not reflect private DNS state when toggled from quick settings; user requested dynamic, synced state so either entry point (app or tile) shows correct status.
+- **Notes:** Tile unchanged (already reads from DnsManager). Single source of truth is ViewModel; observer and onResume keep UI in sync with system.
+
+### 2025-02-11 — Ignore Cursor plans in git
+
+- **What:** Added `.cursor/plans/` to `.gitignore`.
+- **Why:** User requested that any plans be ignored by git.
+- **Notes:** None.
+
+### 2025-02-11 — Replace deprecated Gradle property for AGP 10
+
+- **What:** In `gradle.properties`, removed `android.dependency.excludeLibraryComponentsFromConstraints=true` and `android.dependency.useConstraints=true`; set `android.dependency.useConstraints=false` per Android Gradle Plugin deprecation notice.
+- **Why:** AGP warns that excludeLibraryComponentsFromConstraints is deprecated and will be removed in 10.0; useConstraints=false is the replacement for similar behaviour.
+- **Notes:** None.
+
+### 2025-02-11 — Debug menu only in debug build (BuildConfig.DEBUG)
+
+- **What:** In `app/build.gradle.kts`, set `buildConfig = true` under `buildFeatures`. In `MainActivity.kt`, wrapped the "Show Debug" / "Hide Debug" button and the `AnimatedVisibility` debug log panel in `if (BuildConfig.DEBUG) { ... }` so they are only composed in debug builds.
+- **Why:** Execute plan: show debug menu only in debug builds; release APKs do not expose the debug UI. R8 can strip the dead branch in release.
+- **Notes:** `debugModeEnabled` and `logEntries` state remain; harmless in release when UI is never shown. No changes to DebugLogger or log calls.
+
+### 2026-02-11 — Harden UI redesign execution plan
+
+- **What:** Updated `ui-ux/ui-redesign-plan.md` to add an icon asset preflight gate (required generated files checklist), lock hero asset path to manual `drawable-nodpi/ic_funnel.png` copy, clarify that dynamic colors must be disabled/replaced for deterministic palette behavior, add save-only UX acceptance criteria, require Samsung/OEM validation regression checks, and resolve internal plan contradictions around "options still open."
+- **Why:** User requested a sanity/logic review and then asked to update the redesign plan with recommended fixes before execution.
+- **Notes:** Documentation/planning update only; no app code executed. We did not proceed in this direction; the rollback below was performed instead.
+
+### 2025-02-12 — Roll back to 8d3244f, keep gradle.properties, icon-gen, filter images
+
+- **What:** `git reset --hard` to commit 8d3244f69049b90f65f7f17b891e76d4466bd93d. Restored and retained current versions of: `gradle.properties`, `icon-gen/`, `filter-icon-OLD.png`, `funnel-crop-OLED.png`, `filter-icon.png`.
+- **Why:** User requested rollback to that commit but preserve the listed files.
+- **Notes:** Branch `ui-ux-redesign` is now behind `origin/ui-ux-redesign` by 1 commit; restored files appear as modified/untracked.
+
+### 2026-02-12 — Resolve merge conflict in agent-history (incoming above, rollback below)
+
+- **What:** Resolved merge conflict in `agent/agent-history.md`. Kept both entries: placed incoming "Harden UI redesign execution plan" (2026-02-11) above the rollback entry (2025-02-12); added note to the redesign entry that we did not proceed in that direction and rolled back instead.
+- **Why:** User requested conflict resolution: keep current change with incoming above it and note the rollback.
+- **Notes:** None.
+
+### 2026-02-12 — Use filter-icon (black background) as sole icon source
+
+- **What:** Updated `icon-gen/convert_icon.py` to read `filter-icon.png` (was funnel-crop-OLED.png) and use black background (#000000). Copied `icon-gen/output/res/*` into `app/src/main/res/`. Set `ic_launcher_background` in `colors.xml` to black (#000000). Deleted `app/src/main/res/drawable-nodpi/ic_funnel.png` and removed the empty `drawable-nodpi` folder.
+- **Why:** User requested that the repo use only filter-icon.png (with black background) where icons are needed; user had already run convert_icon.py with output at icon-gen/output.
+- **Notes:** Future icon regeneration: run `python icon-gen/convert_icon.py` and copy `icon-gen/output/res/*` into `app/src/main/res/`.
+
+### 2026-02-12 — OLED black background for main screen and future screens
+
+- **What:** In `MainActivity.kt`, updated `dynamicColorScheme()` to override `background`, `surface`, and `surfaceVariant` with OLED black (#000000) / dark gray (#1A1A1A) via `baseScheme.copy()`. Added `oled_black` to `colors.xml`. Set `android:windowBackground` to `@color/oled_black` in `themes.xml`.
+- **Why:** User requested gray background replaced with OLED black across the app.
+- **Notes:** Future screens using `MaterialTheme.colorScheme` will inherit OLED black backgrounds automatically. Only background, surface, surfaceVariant overridden (compose-bom:2023.10.01 lacks newer surface container roles).
+
+### 2026-02-12 — Save button: save only, do not auto-enable Private DNS
+
+- **What:** In `MainActivity.kt` Save button handler, removed `viewModel.enableDns(host)` after `saveHostname(host)`. Save now only persists the hostname; enabling is manual via the toggle or Quick Settings tile. Updated toast to "Saved. Use the switch or Quick Settings tile to turn Private DNS on." and supporting text to "Saved. Use the switch to enable Private DNS."
+- **Why:** User wants Save to save the hostname without automatically enabling Private DNS; user should manually toggle to know when DNS is on or off.
+
+### 2026-02-12 — Version bump to v0.4.1
+
+- **What:** Updated `version.properties` (VERSION_NAME=0.4.1, VERSION_CODE=8). Added [0.4.1] entry to CHANGELOG.md.
+- **Why:** Release preparation for OLED black and Save-only changes.

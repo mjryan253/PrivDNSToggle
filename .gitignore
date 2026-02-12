@@ -97,3 +97,6 @@ Desktop.ini
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Cursor plans (local planning artifacts)
+.cursor/plans/

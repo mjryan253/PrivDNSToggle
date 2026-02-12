@@ -37,8 +37,8 @@ LAUNCHER_BASE_DP   = 48   # standard launcher icon base size in dp
 FOREGROUND_BASE_DP = 108  # adaptive-icon full canvas size in dp
 TILE_BASE_DP       = 24   # Quick Settings tile icon base size in dp
 
-# Background color that matches the source PNG background (dark gray)
-BG_COLOR_HEX = "#3D3D3D"
+# Background color that matches the source PNG background (black)
+BG_COLOR_HEX = "#000000"
 
 # Luminance threshold for separating foreground from background when
 # creating the monochrome QS tile icon.  Pixels with luminance below this

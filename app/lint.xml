@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Intentional: app is granted WRITE_SECURE_SETTINGS via ADB in setup flow. -->
+    <issue id="ProtectedPermissions">
+        <ignore path="src/main/AndroidManifest.xml" />
+    </issue>
+</lint>
