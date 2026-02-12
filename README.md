@@ -34,7 +34,10 @@ adb shell pm grant com.privdnstoggle.app android.permission.WRITE_SECURE_SETTING
 
 That's it. This permission **persists across app updates** — you only need to do it once. Uninstalling the app revokes it automatically.
 
-> **Don't have ADB?** Install it from [Android SDK Platform Tools](https://developer.android.com/tools/releases/platform-tools). On Windows, extract the zip and run the command from that folder.
+> **Don't have ADB?** The primary intended option is **[Minimal ADB and Fastboot](https://minimaladbandfastboot.com/)** — a small Windows installer that gives you just the bare minimum needed to connect your phone via USB and run the permission command above. 
+
+
+*Alternatively*, the full ADB suite is included when you install **[Android Studio](https://developer.android.com/studio)**; use the SDK’s `platform-tools` (or the terminal inside Android Studio) to run `adb`.
 
 ### 3. Add the Quick Settings Tile
 

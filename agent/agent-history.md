@@ -210,3 +210,21 @@ Each new entry should follow this pattern:
 - **What:** Updated all documentation files to match actual codebase implementation. Fixed README.md (validation status, Save behavior, test coverage), quick-start.md (Save description, validation note, GitHub Actions references), docs/testing.md (added DebugLoggerTest section), docs/troubleshooting.md (corrected enableDns error handling description), docs/debugging-with-logs.md (noted validation disabled, updated log examples), CHANGELOG.md (removed placeholder 0.3.2 entry), docs/release-workflow.md (noted workflows not yet implemented). Verified all code references, file paths, versions, and links match actual codebase.
 - **Why:** User requested in-depth documentation audit to compare codebase with documentation and update where needed, removing outdated references.
 - **Notes:** Key changes: validation is temporarily disabled (commented out in code), Save button enables DNS (not just saves), enableDns() only catches SecurityException (not all exceptions), GitHub Actions workflows are planned but not implemented, DebugLoggerTest coverage documented, placeholder CHANGELOG entry removed.
+
+### 2026-02-11 — README ADB options: Minimal ADB primary, Android Studio alternative
+
+- **What:** Updated README.md “Don’t have ADB?” note: Minimal ADB and Fastboot (https://minimaladbandfastboot.com/) is now the primary intended option; full ADB via Android Studio (link to download) is noted as the alternative.
+- **Why:** User requested Minimal ADB as the main option for running the permission command, with a note that the full suite comes with Android Studio.
+- **Notes:** None.
+
+### 2025-02-11 — Sync Private DNS UI state with system (ViewModel + ContentObserver)
+
+- **What:** Added lifecycle-viewmodel-compose, lifecycle-runtime-ktx, lifecycle-runtime-compose to app/build.gradle.kts. Created DnsSettingsViewModel (StateFlows for isActive, currentHost, hasPermission, savedHostname; ContentObserver on Settings.Global for private_dns_mode and private_dns_specifier; refresh(), enableDns(), disableDns(), saveHostname(); unregister in onCleared). MainActivity: obtain ViewModel, pass to DnsSettingsScreen; onResume() calls ViewModelProvider(this)[DnsSettingsViewModel::class.java].refresh(). DnsSettingsScreen now takes viewModel, uses collectAsStateWithLifecycle() for ViewModel flows; toggle and Save call viewModel methods; removed LaunchedEffect(Unit) and local refreshState() for DNS state.
+- **Why:** Slider and details did not reflect private DNS state when toggled from quick settings; user requested dynamic, synced state so either entry point (app or tile) shows correct status.
+- **Notes:** Tile unchanged (already reads from DnsManager). Single source of truth is ViewModel; observer and onResume keep UI in sync with system.
+
+### 2025-02-11 — Ignore Cursor plans in git
+
+- **What:** Added `.cursor/plans/` to `.gitignore`.
+- **Why:** User requested that any plans be ignored by git.
+- **Notes:** None.

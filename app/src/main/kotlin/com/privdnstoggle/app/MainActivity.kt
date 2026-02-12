@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -52,10 +55,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DnsSettingsScreen()
+                    val viewModel: DnsSettingsViewModel = viewModel()
+                    DnsSettingsScreen(viewModel = viewModel)
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh DNS state when user returns to the app (e.g. after toggling from quick settings)
+        ViewModelProvider(this)[DnsSettingsViewModel::class.java].refresh()
     }
 }
 
@@ -167,16 +177,21 @@ fun LargeToggleSwitch(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DnsSettingsScreen() {
+fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    var hostname by remember { mutableStateOf(DnsManager.getSavedHostname(context)) }
-    var isActive by remember { mutableStateOf(DnsManager.isActive(context.contentResolver)) }
-    var currentHost by remember { mutableStateOf(DnsManager.getCurrentHostname(context.contentResolver)) }
-    var hasPermission by remember { mutableStateOf(DnsManager.hasPermission(context)) }
-    var setupExpanded by remember { mutableStateOf(!hasPermission) }
+    val isActive by viewModel.isActive.collectAsStateWithLifecycle()
+    val currentHost by viewModel.currentHost.collectAsStateWithLifecycle()
+    val hasPermission by viewModel.hasPermission.collectAsStateWithLifecycle()
+    val savedHostname by viewModel.savedHostname.collectAsStateWithLifecycle()
+
+    var hostname by remember(savedHostname) { mutableStateOf(savedHostname) }
+    LaunchedEffect(savedHostname) { hostname = savedHostname }
+
+    var setupExpanded by remember { mutableStateOf(true) }
+
     var debugModeEnabled by remember { mutableStateOf(false) }
 
     // Validation / connection-test state
@@ -195,20 +210,6 @@ fun DnsSettingsScreen() {
                 kotlinx.coroutines.delay(500) // Update every 500ms
             }
         }
-    }
-
-    // Refresh state when returning to the screen
-    LaunchedEffect(Unit) {
-        isActive = DnsManager.isActive(context.contentResolver)
-        currentHost = DnsManager.getCurrentHostname(context.contentResolver)
-        hasPermission = DnsManager.hasPermission(context)
-        setupExpanded = !hasPermission
-    }
-
-    fun refreshState() {
-        isActive = DnsManager.isActive(context.contentResolver)
-        currentHost = DnsManager.getCurrentHostname(context.contentResolver)
-        hasPermission = DnsManager.hasPermission(context)
     }
 
     Scaffold(
@@ -254,7 +255,7 @@ fun DnsSettingsScreen() {
                 checked = isActive,
                 onToggle = { wantOn ->
                     if (wantOn) {
-                        val host = DnsManager.getSavedHostname(context)
+                        val host = savedHostname
                         if (host.isBlank()) {
                             Toast.makeText(
                                 context,
@@ -263,7 +264,7 @@ fun DnsSettingsScreen() {
                             ).show()
                             return@LargeToggleSwitch
                         }
-                        val success = DnsManager.enableDns(context.contentResolver, host)
+                        val success = viewModel.enableDns(host)
                         if (!success) {
                             Toast.makeText(
                                 context,
@@ -272,7 +273,7 @@ fun DnsSettingsScreen() {
                             ).show()
                         }
                     } else {
-                        val success = DnsManager.disableDns(context.contentResolver)
+                        val success = viewModel.disableDns()
                         if (!success) {
                             Toast.makeText(
                                 context,
@@ -281,7 +282,6 @@ fun DnsSettingsScreen() {
                             ).show()
                         }
                     }
-                    refreshState()
                 },
                 enabled = !isValidating
             )
@@ -332,6 +332,7 @@ fun DnsSettingsScreen() {
                                 color = ColorOn
                             )
                         }
+                        else -> {}
                     }
                 }
             )
@@ -365,9 +366,9 @@ fun DnsSettingsScreen() {
                                 isValidating = false
                                 if (result.isSuccess) {
                                     DebugLogger.d("MainActivity", "Connection test successful, saving hostname")
-                                    DnsManager.saveHostname(context, host)
+                                    viewModel.saveHostname(host)
                                     DebugLogger.d("MainActivity", "Calling enableDns() with '$host'")
-                                    val applied = DnsManager.enableDns(context.contentResolver, host)
+                                    val applied = viewModel.enableDns(host)
                                     if (applied) {
                                         DebugLogger.d("MainActivity", "enableDns() returned true - DNS enabled successfully")
                                         saveSuccess = true
@@ -376,7 +377,6 @@ fun DnsSettingsScreen() {
                                             "DNS saved and set to $host",
                                             Toast.LENGTH_SHORT
                                         ).show()
-                                        refreshState()
                                         if (debugModeEnabled) {
                                             logEntries = DebugLogger.getRecentLogEntries(50)
                                         }
