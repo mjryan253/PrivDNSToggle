@@ -2,6 +2,12 @@
 
 All notable changes to PrivDNS Toggle will be documented in this file.
 
+## [0.4.1] - 2026-02-12
+
+### Changed
+- **OLED black background** — Main screen and surfaces use true black (#000000) for OLED displays.
+- **Save button** — Save now only persists the DNS hostname; enabling Private DNS is manual via the toggle or Quick Settings tile.
+
 ## [0.4] - 2026-02-11
 
 ### Changed / Fixed / Added

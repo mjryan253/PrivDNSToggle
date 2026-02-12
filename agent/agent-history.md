@@ -264,3 +264,19 @@ Each new entry should follow this pattern:
 - **What:** Updated `icon-gen/convert_icon.py` to read `filter-icon.png` (was funnel-crop-OLED.png) and use black background (#000000). Copied `icon-gen/output/res/*` into `app/src/main/res/`. Set `ic_launcher_background` in `colors.xml` to black (#000000). Deleted `app/src/main/res/drawable-nodpi/ic_funnel.png` and removed the empty `drawable-nodpi` folder.
 - **Why:** User requested that the repo use only filter-icon.png (with black background) where icons are needed; user had already run convert_icon.py with output at icon-gen/output.
 - **Notes:** Future icon regeneration: run `python icon-gen/convert_icon.py` and copy `icon-gen/output/res/*` into `app/src/main/res/`.
+
+### 2026-02-12 — OLED black background for main screen and future screens
+
+- **What:** In `MainActivity.kt`, updated `dynamicColorScheme()` to override `background`, `surface`, and `surfaceVariant` with OLED black (#000000) / dark gray (#1A1A1A) via `baseScheme.copy()`. Added `oled_black` to `colors.xml`. Set `android:windowBackground` to `@color/oled_black` in `themes.xml`.
+- **Why:** User requested gray background replaced with OLED black across the app.
+- **Notes:** Future screens using `MaterialTheme.colorScheme` will inherit OLED black backgrounds automatically. Only background, surface, surfaceVariant overridden (compose-bom:2023.10.01 lacks newer surface container roles).
+
+### 2026-02-12 — Save button: save only, do not auto-enable Private DNS
+
+- **What:** In `MainActivity.kt` Save button handler, removed `viewModel.enableDns(host)` after `saveHostname(host)`. Save now only persists the hostname; enabling is manual via the toggle or Quick Settings tile. Updated toast to "Saved. Use the switch or Quick Settings tile to turn Private DNS on." and supporting text to "Saved. Use the switch to enable Private DNS."
+- **Why:** User wants Save to save the hostname without automatically enabling Private DNS; user should manually toggle to know when DNS is on or off.
+
+### 2026-02-12 — Version bump to v0.4.1
+
+- **What:** Updated `version.properties` (VERSION_NAME=0.4.1, VERSION_CODE=8). Added [0.4.1] entry to CHANGELOG.md.
+- **Why:** Release preparation for OLED black and Save-only changes.

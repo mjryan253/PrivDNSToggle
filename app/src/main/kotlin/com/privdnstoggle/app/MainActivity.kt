@@ -81,11 +81,16 @@ fun PrivDnsTheme(content: @Composable () -> Unit) {
 @Composable
 fun dynamicColorScheme(): ColorScheme {
     val context = LocalContext.current
-    return if (android.os.Build.VERSION.SDK_INT >= 31) {
+    val baseScheme = if (android.os.Build.VERSION.SDK_INT >= 31) {
         dynamicDarkColorScheme(context)
     } else {
         darkColorScheme()
     }
+    return baseScheme.copy(
+        background = Color.Black,
+        surface = Color.Black,
+        surfaceVariant = Color(0xFF1A1A1A)
+    )
 }
 
 // ── Large Toggle Switch ──────────────────────────────────────────────────────
@@ -328,7 +333,7 @@ fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
                         }
                         saveSuccess -> {
                             Text(
-                                text = "Saved and connected successfully",
+                                text = "Saved. Use the switch to enable Private DNS.",
                                 color = ColorOn
                             )
                         }
@@ -367,26 +372,14 @@ fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
                                 if (result.isSuccess) {
                                     DebugLogger.d("MainActivity", "Connection test successful, saving hostname")
                                     viewModel.saveHostname(host)
-                                    DebugLogger.d("MainActivity", "Calling enableDns() with '$host'")
-                                    val applied = viewModel.enableDns(host)
-                                    if (applied) {
-                                        DebugLogger.d("MainActivity", "enableDns() returned true - DNS enabled successfully")
-                                        saveSuccess = true
-                                        Toast.makeText(
-                                            context,
-                                            "DNS saved and set to $host",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        if (debugModeEnabled) {
-                                            logEntries = DebugLogger.getRecentLogEntries(50)
-                                        }
-                                    } else {
-                                        DebugLogger.e("MainActivity", "enableDns() returned false - permission denied or error")
-                                        validationError =
-                                            "Permission denied. Grant WRITE_SECURE_SETTINGS via ADB."
-                                        if (debugModeEnabled) {
-                                            logEntries = DebugLogger.getRecentLogEntries(50)
-                                        }
+                                    saveSuccess = true
+                                    Toast.makeText(
+                                        context,
+                                        "Saved. Use the switch or Quick Settings tile to turn Private DNS on.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    if (debugModeEnabled) {
+                                        logEntries = DebugLogger.getRecentLogEntries(50)
                                     }
                                 } else {
                                     val errorMsg = result.exceptionOrNull()?.message ?: "Connection failed"
