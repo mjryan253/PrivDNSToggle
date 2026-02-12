@@ -240,3 +240,9 @@ Each new entry should follow this pattern:
 - **What:** In `app/build.gradle.kts`, set `buildConfig = true` under `buildFeatures`. In `MainActivity.kt`, wrapped the "Show Debug" / "Hide Debug" button and the `AnimatedVisibility` debug log panel in `if (BuildConfig.DEBUG) { ... }` so they are only composed in debug builds.
 - **Why:** Execute plan: show debug menu only in debug builds; release APKs do not expose the debug UI. R8 can strip the dead branch in release.
 - **Notes:** `debugModeEnabled` and `logEntries` state remain; harmless in release when UI is never shown. No changes to DebugLogger or log calls.
+
+### 2026-02-11 — Harden UI redesign execution plan
+
+- **What:** Updated `ui-ux/ui-redesign-plan.md` to add an icon asset preflight gate (required generated files checklist), lock hero asset path to manual `drawable-nodpi/ic_funnel.png` copy, clarify that dynamic colors must be disabled/replaced for deterministic palette behavior, add save-only UX acceptance criteria, require Samsung/OEM validation regression checks, and resolve internal plan contradictions around "options still open."
+- **Why:** User requested a sanity/logic review and then asked to update the redesign plan with recommended fixes before execution.
+- **Notes:** Documentation/planning update only; no app code executed or implemented in this step.
