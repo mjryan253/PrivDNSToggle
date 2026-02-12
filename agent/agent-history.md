@@ -241,8 +241,20 @@ Each new entry should follow this pattern:
 - **Why:** Execute plan: show debug menu only in debug builds; release APKs do not expose the debug UI. R8 can strip the dead branch in release.
 - **Notes:** `debugModeEnabled` and `logEntries` state remain; harmless in release when UI is never shown. No changes to DebugLogger or log calls.
 
+### 2026-02-11 — Harden UI redesign execution plan
+
+- **What:** Updated `ui-ux/ui-redesign-plan.md` to add an icon asset preflight gate (required generated files checklist), lock hero asset path to manual `drawable-nodpi/ic_funnel.png` copy, clarify that dynamic colors must be disabled/replaced for deterministic palette behavior, add save-only UX acceptance criteria, require Samsung/OEM validation regression checks, and resolve internal plan contradictions around "options still open."
+- **Why:** User requested a sanity/logic review and then asked to update the redesign plan with recommended fixes before execution.
+- **Notes:** Documentation/planning update only; no app code executed. We did not proceed in this direction; the rollback below was performed instead.
+
 ### 2025-02-12 — Roll back to 8d3244f, keep gradle.properties, icon-gen, filter images
 
 - **What:** `git reset --hard` to commit 8d3244f69049b90f65f7f17b891e76d4466bd93d. Restored and retained current versions of: `gradle.properties`, `icon-gen/`, `filter-icon-OLD.png`, `funnel-crop-OLED.png`, `filter-icon.png`.
 - **Why:** User requested rollback to that commit but preserve the listed files.
 - **Notes:** Branch `ui-ux-redesign` is now behind `origin/ui-ux-redesign` by 1 commit; restored files appear as modified/untracked.
+
+### 2026-02-12 — Resolve merge conflict in agent-history (incoming above, rollback below)
+
+- **What:** Resolved merge conflict in `agent/agent-history.md`. Kept both entries: placed incoming "Harden UI redesign execution plan" (2026-02-11) above the rollback entry (2025-02-12); added note to the redesign entry that we did not proceed in that direction and rolled back instead.
+- **Why:** User requested conflict resolution: keep current change with incoming above it and note the rollback.
+- **Notes:** None.
