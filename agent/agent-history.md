@@ -240,3 +240,9 @@ Each new entry should follow this pattern:
 - **What:** In `app/build.gradle.kts`, set `buildConfig = true` under `buildFeatures`. In `MainActivity.kt`, wrapped the "Show Debug" / "Hide Debug" button and the `AnimatedVisibility` debug log panel in `if (BuildConfig.DEBUG) { ... }` so they are only composed in debug builds.
 - **Why:** Execute plan: show debug menu only in debug builds; release APKs do not expose the debug UI. R8 can strip the dead branch in release.
 - **Notes:** `debugModeEnabled` and `logEntries` state remain; harmless in release when UI is never shown. No changes to DebugLogger or log calls.
+
+### 2025-02-12 — Roll back to 8d3244f, keep gradle.properties, icon-gen, filter images
+
+- **What:** `git reset --hard` to commit 8d3244f69049b90f65f7f17b891e76d4466bd93d. Restored and retained current versions of: `gradle.properties`, `icon-gen/`, `filter-icon-OLD.png`, `funnel-crop-OLED.png`, `filter-icon.png`.
+- **Why:** User requested rollback to that commit but preserve the listed files.
+- **Notes:** Branch `ui-ux-redesign` is now behind `origin/ui-ux-redesign` by 1 commit; restored files appear as modified/untracked.
