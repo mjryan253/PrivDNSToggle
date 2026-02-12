@@ -258,3 +258,9 @@ Each new entry should follow this pattern:
 - **What:** Resolved merge conflict in `agent/agent-history.md`. Kept both entries: placed incoming "Harden UI redesign execution plan" (2026-02-11) above the rollback entry (2025-02-12); added note to the redesign entry that we did not proceed in that direction and rolled back instead.
 - **Why:** User requested conflict resolution: keep current change with incoming above it and note the rollback.
 - **Notes:** None.
+
+### 2026-02-12 — Use filter-icon (black background) as sole icon source
+
+- **What:** Updated `icon-gen/convert_icon.py` to read `filter-icon.png` (was funnel-crop-OLED.png) and use black background (#000000). Copied `icon-gen/output/res/*` into `app/src/main/res/`. Set `ic_launcher_background` in `colors.xml` to black (#000000). Deleted `app/src/main/res/drawable-nodpi/ic_funnel.png` and removed the empty `drawable-nodpi` folder.
+- **Why:** User requested that the repo use only filter-icon.png (with black background) where icons are needed; user had already run convert_icon.py with output at icon-gen/output.
+- **Notes:** Future icon regeneration: run `python icon-gen/convert_icon.py` and copy `icon-gen/output/res/*` into `app/src/main/res/`.

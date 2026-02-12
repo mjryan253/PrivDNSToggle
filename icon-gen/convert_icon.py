@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-convert_icon.py  --  Generate all Android icon assets from funnel-crop-OLED.png.
+convert_icon.py  --  Generate all Android icon assets from filter-icon.png.
 
 Usage:
     pip install -r requirements.txt
     python convert_icon.py
 
-Reads  ../funnel-crop-OLED.png  (relative to this script).
+Reads  ../filter-icon.png  (relative to this script).
 Writes output/res/  with mipmap-* and drawable-* folders ready to copy
 into app/src/main/res/.
 """
@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw
 # Paths
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
-SOURCE_PNG = SCRIPT_DIR / ".." / "funnel-crop-OLED.png"
+SOURCE_PNG = SCRIPT_DIR / ".." / "filter-icon.png"
 OUTPUT_RES = SCRIPT_DIR / "output" / "res"
 
 # ---------------------------------------------------------------------------
@@ -37,8 +37,8 @@ LAUNCHER_BASE_DP   = 48   # standard launcher icon base size in dp
 FOREGROUND_BASE_DP = 108  # adaptive-icon full canvas size in dp
 TILE_BASE_DP       = 24   # Quick Settings tile icon base size in dp
 
-# Background color that matches the source PNG background (dark gray)
-BG_COLOR_HEX = "#3D3D3D"
+# Background color that matches the source PNG background (black)
+BG_COLOR_HEX = "#000000"
 
 # Luminance threshold for separating foreground from background when
 # creating the monochrome QS tile icon.  Pixels with luminance below this
@@ -198,7 +198,7 @@ def main() -> None:
     if not SOURCE_PNG.exists():
         raise FileNotFoundError(
             f"Source image not found at {SOURCE_PNG}\n"
-            "Make sure funnel-crop-OLED.png is in the repository root."
+            "Make sure filter-icon.png is in the repository root."
         )
 
     print(f"Source: {SOURCE_PNG.resolve()}")
