@@ -228,3 +228,15 @@ Each new entry should follow this pattern:
 - **What:** Added `.cursor/plans/` to `.gitignore`.
 - **Why:** User requested that any plans be ignored by git.
 - **Notes:** None.
+
+### 2025-02-11 — Replace deprecated Gradle property for AGP 10
+
+- **What:** In `gradle.properties`, removed `android.dependency.excludeLibraryComponentsFromConstraints=true` and `android.dependency.useConstraints=true`; set `android.dependency.useConstraints=false` per Android Gradle Plugin deprecation notice.
+- **Why:** AGP warns that excludeLibraryComponentsFromConstraints is deprecated and will be removed in 10.0; useConstraints=false is the replacement for similar behaviour.
+- **Notes:** None.
+
+### 2025-02-11 — Debug menu only in debug build (BuildConfig.DEBUG)
+
+- **What:** In `app/build.gradle.kts`, set `buildConfig = true` under `buildFeatures`. In `MainActivity.kt`, wrapped the "Show Debug" / "Hide Debug" button and the `AnimatedVisibility` debug log panel in `if (BuildConfig.DEBUG) { ... }` so they are only composed in debug builds.
+- **Why:** Execute plan: show debug menu only in debug builds; release APKs do not expose the debug UI. R8 can strip the dead branch in release.
+- **Notes:** `debugModeEnabled` and `logEntries` state remain; harmless in release when UI is never shown. No changes to DebugLogger or log calls.

@@ -551,116 +551,118 @@ fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Debug Button ────────────────────────────────────────────────────
+            // ── Debug Button & panel (debug builds only) ──────────────────────────
 
-            Button(
-                onClick = { 
-                    debugModeEnabled = !debugModeEnabled
-                    if (debugModeEnabled) {
-                        logEntries = DebugLogger.getRecentLogEntries(50)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = if (debugModeEnabled) "Hide Debug" else "Show Debug",
-                    fontSize = 16.sp
-                )
-            }
-
-            // ── Debug Features (shown when enabled) ───────────────────────────────
-
-            AnimatedVisibility(visible = debugModeEnabled) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Log display
-                    Surface(
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    ) {
-                        val scrollState = rememberScrollState()
-                        LaunchedEffect(logEntries.size) {
-                            scrollState.animateScrollTo(scrollState.maxValue)
+            if (BuildConfig.DEBUG) {
+                Button(
+                    onClick = {
+                        debugModeEnabled = !debugModeEnabled
+                        if (debugModeEnabled) {
+                            logEntries = DebugLogger.getRecentLogEntries(50)
                         }
-                        
-                        if (logEntries.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No log entries yet",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
-                                )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = if (debugModeEnabled) "Hide Debug" else "Show Debug",
+                        fontSize = 16.sp
+                    )
+                }
+
+                // ── Debug Features (shown when enabled) ───────────────────────────────
+
+                AnimatedVisibility(visible = debugModeEnabled) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Log display
+                        Surface(
+                            color = MaterialTheme.colorScheme.inverseSurface,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                        ) {
+                            val scrollState = rememberScrollState()
+                            LaunchedEffect(logEntries.size) {
+                                scrollState.animateScrollTo(scrollState.maxValue)
                             }
-                        } else {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .verticalScroll(scrollState)
-                                    .padding(12.dp)
-                            ) {
-                                logEntries.forEach { entry ->
+
+                            if (logEntries.isEmpty()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text(
-                                        text = entry,
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = FontFamily.Monospace
-                                        ),
-                                        color = MaterialTheme.colorScheme.inverseOnSurface,
-                                        modifier = Modifier.padding(bottom = 4.dp)
+                                        text = "No log entries yet",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
                                     )
+                                }
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .verticalScroll(scrollState)
+                                        .padding(12.dp)
+                                ) {
+                                    logEntries.forEach { entry ->
+                                        Text(
+                                            text = entry,
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = FontFamily.Monospace
+                                            ),
+                                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // Action buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                DebugLogger.clear()
-                                logEntries = DebugLogger.getRecentLogEntries(50)
-                                Toast.makeText(
-                                    context,
-                                    "Logs cleared",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            modifier = Modifier.weight(1f)
+                        // Action buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Clear Logs")
-                        }
+                            OutlinedButton(
+                                onClick = {
+                                    DebugLogger.clear()
+                                    logEntries = DebugLogger.getRecentLogEntries(50)
+                                    Toast.makeText(
+                                        context,
+                                        "Logs cleared",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Clear Logs")
+                            }
 
-                        OutlinedButton(
-                            onClick = {
-                                val logs = DebugLogger.getAllLogs()
-                                val clipboard =
-                                    context.getSystemService(ClipboardManager::class.java)
-                                clipboard.setPrimaryClip(
-                                    ClipData.newPlainText(
-                                        "Debug Logs",
-                                        logs
+                            OutlinedButton(
+                                onClick = {
+                                    val logs = DebugLogger.getAllLogs()
+                                    val clipboard =
+                                        context.getSystemService(ClipboardManager::class.java)
+                                    clipboard.setPrimaryClip(
+                                        ClipData.newPlainText(
+                                            "Debug Logs",
+                                            logs
+                                        )
                                     )
-                                )
-                                Toast.makeText(
-                                    context,
-                                    "Logs copied to clipboard",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Copy Logs")
+                                    Toast.makeText(
+                                        context,
+                                        "Logs copied to clipboard",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Copy Logs")
+                            }
                         }
                     }
                 }
