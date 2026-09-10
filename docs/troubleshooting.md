@@ -80,6 +80,12 @@ adb shell pm grant --user 150 com.privdnstoggle.app android.permission.WRITE_SEC
 
 Replace `150` with the userId that showed `granted=false`. To list users: `adb shell pm list users`. Common IDs: `0` = main profile, `10` = work profile on some devices, `150` = work profile on others.
 
+**No computer?** If [Shizuku](https://shizuku.rikka.app) is installed and running, open the app, expand **Setup Instructions**, and tap **Grant with Shizuku** instead of running the ADB command. Notes:
+
+- Shizuku must be started again after each reboot unless the device is rooted. If the app says "Shizuku is not running", start it in the Shizuku app and tap the button again.
+- If you chose "Deny and don't ask again" in the Shizuku dialog, allow PrivDNS Toggle in Shizuku's list of authorized apps, then tap the button again.
+- The Shizuku grant targets the user/profile the app is running in, so the `--user` step above is not needed with Shizuku.
+
 ---
 
 ## 3. Install a debug build for better stack traces
@@ -172,7 +178,7 @@ If you encounter crashes on Samsung devices, please include:
 | Step | Action |
 |------|--------|
 | 1 | Connect device via USB, enable USB debugging |
-| 2 | Run: `adb shell pm grant com.privdnstoggle.app android.permission.WRITE_SECURE_SETTINGS` |
+| 2 | Run: `adb shell pm grant com.privdnstoggle.app android.permission.WRITE_SECURE_SETTINGS`, or tap **Grant with Shizuku** in the app (see section 2) |
 | 3 | Verify: `adb shell dumpsys package com.privdnstoggle.app \| findstr permission` shows the grant |
 | 4 | Open the app; if it crashes, run `adb logcat -d > logcat.txt` and inspect (or share) the stack trace |
 | 5 | If needed, build and install a debug build and reproduce to get a clear stack trace |

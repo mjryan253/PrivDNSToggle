@@ -2,6 +2,11 @@
 
 All notable changes to PrivDNS Toggle will be documented in this file.
 
+## [0.5] - 2026-09-09
+
+### Added
+- **Grant with Shizuku** - one-time in-app grant of `WRITE_SECURE_SETTINGS` through a Shizuku user service, for devices without access to a computer. The ADB command remains supported.
+
 ## [0.4.1] - 2026-02-12
 
 ### Changed

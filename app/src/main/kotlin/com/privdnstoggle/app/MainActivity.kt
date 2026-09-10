@@ -204,6 +204,9 @@ fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
     var validationError by remember { mutableStateOf<String?>(null) }
     var saveSuccess by remember { mutableStateOf(false) }
 
+    // Shizuku grant in progress
+    var isGranting by remember { mutableStateOf(false) }
+
     // Debug log entries (last 50 entries)
     var logEntries by remember { mutableStateOf(DebugLogger.getRecentLogEntries(50)) }
     
@@ -537,6 +540,41 @@ fun DnsSettingsScreen(viewModel: DnsSettingsViewModel) {
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
+
+                            // \u2500\u2500 Grant with Shizuku (no computer needed) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+                            if (!hasPermission) {
+                                Text(
+                                    text = "No computer? If Shizuku is installed and running, grant it directly:",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                OutlinedButton(
+                                    onClick = {
+                                        DebugLogger.d("MainActivity", "Grant with Shizuku clicked")
+                                        isGranting = true
+                                        scope.launch {
+                                            val result = ShizukuHelper.grantWriteSecureSettings()
+                                            withContext(Dispatchers.Main.immediate) {
+                                                isGranting = false
+                                                viewModel.refresh()
+                                                Toast.makeText(
+                                                    context,
+                                                    if (result.isSuccess) {
+                                                        "Permission granted."
+                                                    } else {
+                                                        result.exceptionOrNull()?.message ?: "Shizuku grant failed"
+                                                    },
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                    },
+                                    enabled = !isGranting,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(if (isGranting) "Granting..." else "Grant with Shizuku")
+                                }
+                            }
                         }
                     }
                 }

@@ -66,6 +66,7 @@ android {
     }
 
     buildFeatures {
+        aidl = true
         buildConfig = true
         compose = true
     }
@@ -87,6 +88,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    // Shizuku: one-time in-app grant of WRITE_SECURE_SETTINGS (see ShizukuHelper)
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
