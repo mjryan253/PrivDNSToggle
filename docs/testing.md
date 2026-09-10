@@ -42,6 +42,7 @@ Unit tests run on your machine's JVM. No device or emulator is required. They ar
 - **Connection test** (`DnsManager.testConnection`) — Depends on the network and real TLS; not unit-tested. Manually verify by saving a hostname in the app and checking that success/failure and errors behave as expected.
 - **Save/load hostname** — Uses `Context` and `SharedPreferences`; could be covered by instrumented tests (on device/emulator) but currently is not. Manually verify by saving a hostname and toggling or restarting the app.
 - **Private DNS on/off** — Uses `Settings.Global` and the `WRITE_SECURE_SETTINGS` permission. Not automated; verify on a real device after granting the ADB permission (see [quick-start.md](../quick-start.md)).
+- **Grant with Shizuku** (`ShizukuHelper`, `ShizukuUserService`) - Depends on the Shizuku app and binder IPC; not automated. Verify on a device with Shizuku running: tap the button in Setup Instructions, allow the request, and confirm the "Required" badge disappears.
 - **UI (Compose)** — No UI tests. Verify the main screen and Quick Settings tile by hand.
 
 ## How to run unit tests

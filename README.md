@@ -11,6 +11,7 @@ A minimal Android app to toggle Private DNS on and off — from the Quick Settin
 - **DNS Connection Testing** — connection testing (10s timeout) before saving (syntax validation temporarily disabled)
 - **Dark Mode UI** — modern dark theme interface by default
 - **Lightweight** — no background services, no analytics
+- **Shizuku Support** - grant the required permission in-app via Shizuku, no computer needed
 
 ## Setup
 
@@ -20,7 +21,7 @@ Open the project in Android Studio, let Gradle sync, then **Run** on your device
 
 ### 2. Grant Permission (required, one-time)
 
-This app writes to Android's Private DNS system setting, which requires the `WRITE_SECURE_SETTINGS` permission. Android does not allow this to be granted through a normal permission dialog — it must be granted via ADB.
+This app writes to Android's Private DNS system setting, which requires the `WRITE_SECURE_SETTINGS` permission. Android does not allow this to be granted through a normal permission dialog — it must be granted via ADB, or via Shizuku (see below).
 
 **Steps:**
 
@@ -38,6 +39,8 @@ That's it. This permission **persists across app updates** — you only need to 
 
 
 *Alternatively*, the full ADB suite is included when you install **[Android Studio](https://developer.android.com/studio)**; use the SDK’s `platform-tools` (or the terminal inside Android Studio) to run `adb`.
+
+> **No computer?** If [Shizuku](https://shizuku.rikka.app) is installed and running on the phone, open the app, expand **Setup Instructions**, and tap **Grant with Shizuku**. This runs the same grant on-device. See [quick-start.md](quick-start.md#43-alternative-grant-via-shizuku-no-computer-needed) for the steps.
 
 ### 3. Add the Quick Settings Tile
 
@@ -86,5 +89,5 @@ See **[docs/testing.md](docs/testing.md)** for what is tested, how to run unit t
 ## Requirements
 
 - Android 9+ (API 28)
-- One-time ADB command for permission grant
+- One-time permission grant via ADB or Shizuku
 - Internet connection (for DNS connection testing during setup)

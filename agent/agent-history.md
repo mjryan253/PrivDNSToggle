@@ -280,3 +280,9 @@ Each new entry should follow this pattern:
 
 - **What:** Updated `version.properties` (VERSION_NAME=0.4.1, VERSION_CODE=8). Added [0.4.1] entry to CHANGELOG.md.
 - **Why:** Release preparation for OLED black and Save-only changes.
+
+### 2026-09-09 - Shizuku support for granting WRITE_SECURE_SETTINGS
+
+- **What:** Added `app/src/main/aidl/com/privdnstoggle/app/IUserService.aidl`, `ShizukuUserService.kt` (runs `pm grant --user <user> com.privdnstoggle.app android.permission.WRITE_SECURE_SETTINGS` inside a Shizuku user-service process) and `ShizukuHelper.kt` (checks Shizuku state, requests Shizuku permission, binds the user service, returns a `Result`). `MainActivity.kt`: "Grant with Shizuku" button appended to the Setup Instructions card, shown only while the permission is missing. `app/build.gradle.kts`: `aidl = true`, `dev.rikka.shizuku:api:13.1.5` and `:provider:13.1.5`. `AndroidManifest.xml`: `rikka.shizuku.ShizukuProvider`. `proguard-rules.pro`: keep `ShizukuUserService`. Docs: README, quick-start (4.3), troubleshooting (section 2, checklist), testing (not covered list), CHANGELOG [0.5]. `version.properties` to 0.5 / 9.
+- **Why:** User requested Shizuku support so the permission can be granted on-device without a computer.
+- **Notes:** Shizuku is a one-time bootstrap only; after the grant the app writes Settings.Global directly as before and does not depend on Shizuku running. `Shizuku.newProcess` is private/deprecated upstream, so a UserService is used. Full `-keep` on `ShizukuUserService` because Shizuku instantiates it by name via reflection and R8 would otherwise strip it. `--user` is derived from `Process.myUid() / 100000` so work-profile installs are granted correctly. Rotating the device while the Shizuku dialog is open cancels the flow; tapping again completes it. No unit tests added (binder/process plumbing, no pure logic). Branch: `shizuku-support`.

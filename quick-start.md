@@ -139,6 +139,17 @@ You should see the permission listed.
 
 **Important:** This permission **persists across app updates** — you only need to grant it once. Uninstalling the app will revoke it automatically.
 
+### 4.3 Alternative: Grant via Shizuku (no computer needed)
+
+If you cannot use ADB from a computer, the app can grant the permission through [Shizuku](https://shizuku.rikka.app):
+
+1. Install Shizuku from [Google Play](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) or [GitHub](https://github.com/RikkaApps/Shizuku/releases)
+2. Start Shizuku by following its [setup guide](https://shizuku.rikka.app/guide/setup/) (on Android 11+ this works on-device via Wireless debugging; older versions need a one-time ADB start or root)
+3. Open **PrivDNS Toggle**, expand **Setup Instructions**, and tap **Grant with Shizuku**
+4. Allow the request in the Shizuku dialog
+
+The result is the same as the ADB command: the grant persists across app updates. Shizuku is only used for this step and does not need to keep running afterwards.
+
 ## Step 5: Configure Quick Settings Tile
 
 ### 5.1 Add the Tile
